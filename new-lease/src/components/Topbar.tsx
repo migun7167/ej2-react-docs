@@ -43,7 +43,7 @@ export default function Topbar({ sidebarOpen, onToggleSidebar, activePage }: Top
           <Menu size={20} />
         </button>
         <div style={{ fontSize: 13, color: 'var(--srt-gray-500)' }}>
-          New Lease &rsaquo; <span style={{ color: 'var(--srt-gray-800)', fontWeight: 600 }}>{pageLabels[activePage] || activePage}</span>
+          Contract Management &rsaquo; <span style={{ color: 'var(--srt-gray-800)', fontWeight: 600 }}>{pageLabels[activePage] || activePage}</span>
         </div>
       </div>
 

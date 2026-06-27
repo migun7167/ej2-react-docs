@@ -41,10 +41,10 @@ export default function Dashboard() {
       <div className="page-header">
         <div className="page-header-title">
           <BarChart2 size={22} />
-          New Lease - Dashboard ภาพรวมระบบ
+          Contract Management - Dashboard ภาพรวมระบบ
         </div>
         <div className="page-header-sub">
-          New Lease System · ข้อมูล ณ วันที่ 27 มิถุนายน 2567 · ผู้ใช้งาน: นายวิชัย การรถไฟ
+          Contract Management System · ข้อมูล ณ วันที่ 27 มิถุนายน 2567 · ผู้ใช้งาน: นายวิชัย การรถไฟ
         </div>
       </div>
 

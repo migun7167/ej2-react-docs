@@ -56,11 +56,11 @@ export default function Sidebar({ open, onToggle, activePage, onNavigate }: Side
   return (
     <div className={`sidebar ${open ? 'open' : 'collapsed'}`}>
       <div className="sidebar-logo">
-        <div className="sidebar-logo-icon">NL</div>
+        <div className="sidebar-logo-icon">CM</div>
         {open && (
           <div className="sidebar-logo-text">
-            <div className="sidebar-logo-title">New Lease</div>
-            <div className="sidebar-logo-sub">ระบบบริหารจัดการสัญญาเช่า</div>
+            <div className="sidebar-logo-title">Contract Management</div>
+            <div className="sidebar-logo-sub">ระบบบริหารจัดการสัญญา</div>
           </div>
         )}
         <button
