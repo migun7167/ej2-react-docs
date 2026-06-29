@@ -1,0 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Sarabun', sans-serif; background: #f5f5f5; }
+
+.srt-logo { color: #fff; font-size: 20px; font-weight: 700; padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.srt-logo span { color: #E74C3C; }
+
+.status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+
+.card-stat { cursor: pointer; transition: all 0.2s; }
+.card-stat:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important; }
+
+.urgency-urgent { color: #C0392B; }
+.urgency-soon { color: #E67E22; }
+.urgency-normal { color: #27AE60; }
