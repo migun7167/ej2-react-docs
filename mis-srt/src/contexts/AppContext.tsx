@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, Dispatch, SetStateAction } from 'react';
 import type { User, Request, Contract, Invoice, Notification, UserRole } from '../types';
 import { mockUsers, mockRequests, mockContracts, mockInvoices, mockNotifications } from '../data/mockData';
 
@@ -11,23 +11,25 @@ interface CurrentUser {
 
 interface AppContextType {
   currentUser: CurrentUser | null;
-  setCurrentUser: (user: CurrentUser | null) => void;
+  setCurrentUser: Dispatch<SetStateAction<CurrentUser | null>>;
   requests: Request[];
-  setRequests: (requests: Request[]) => void;
+  setRequests: Dispatch<SetStateAction<Request[]>>;
   addRequest: (request: Request) => void;
   updateRequest: (id: string, updates: Partial<Request>) => void;
   contracts: Contract[];
-  setContracts: (contracts: Contract[]) => void;
+  setContracts: Dispatch<SetStateAction<Contract[]>>;
   invoices: Invoice[];
-  setInvoices: (invoices: Invoice[]) => void;
+  setInvoices: Dispatch<SetStateAction<Invoice[]>>;
   updateInvoice: (id: string, updates: Partial<Invoice>) => void;
   notifications: Notification[];
-  setNotifications: (notifications: Notification[]) => void;
+  setNotifications: Dispatch<SetStateAction<Notification[]>>;
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: () => void;
   users: User[];
-  setUsers: (users: User[]) => void;
+  setUsers: Dispatch<SetStateAction<User[]>>;
   unreadCount: number;
+  login: (role: UserRole, name: string) => void;
+  logout: () => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -62,6 +64,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
+  const login = (role: UserRole, name: string) => {
+    setCurrentUser({ id: 'demo', name, role, email: `${name}@srt.or.th` });
+  };
+
+  const logout = () => setCurrentUser(null);
+
   return (
     <AppContext.Provider value={{
       currentUser, setCurrentUser,
@@ -70,7 +78,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       invoices, setInvoices, updateInvoice,
       notifications, setNotifications, markNotificationRead, markAllNotificationsRead,
       users, setUsers,
-      unreadCount,
+      unreadCount, login, logout,
     }}>
       {children}
     </AppContext.Provider>
