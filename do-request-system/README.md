@@ -39,6 +39,26 @@ After a Forwarder submits, log in as a TMO account to scan/attach the
 required documents and approve — that generates the DO document (open it
 from the request's timeline once status is `DO_ASSIGNED`).
 
+## Dashboards
+
+Both the Forwarder and TMO dashboards ship with realistic seeded history
+(a handful of past requests at various ages) so charts and KPIs aren't
+empty on first login:
+
+- **Status-distribution chart** — bar chart of requests by bucket (in
+  progress / manual review / assigned / rejected), scoped to "my requests"
+  for Forwarders and system-wide for TMO.
+- **Aging / SLA badges** — active requests are flagged "รอมา Xชม." (≥4h) or
+  "ล่าช้า" (≥24h) so TMO can prioritize the oldest items first.
+- **Turnaround KPIs** — average hours from submit to `DO_ASSIGNED` (per
+  forwarder, and system-wide for TMO), plus "Assign DO วันนี้" (approved
+  today) on the TMO side.
+- **Recent activity feed** — last 6 audit events, scoped to the current
+  user for Forwarders and system-wide for TMO.
+- **Search & filter** — Forwarders can filter their own requests by
+  MAWB/HAWB and status bucket; TMO can filter every queue by MAWB/HAWB/
+  forwarder company.
+
 This is a UI/UX design prototype only — it is not connected to any real
 airline, customs, or AOT system, and the Delivery Order it renders is a
 mockup (clearly watermarked as such).

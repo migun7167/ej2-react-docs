@@ -186,8 +186,30 @@ table.tbl td{padding:10px;border-bottom:1px solid var(--border);vertical-align:t
 table.tbl tr:hover td{background:var(--surface-2);}
 
 .kpi{display:flex;flex-direction:column;gap:4px;}
-.kpi-num{font-size:26px;font-weight:800;}
+.kpi-num{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;}
 .kpi-label{font-size:12px;color:var(--text-dim);font-weight:600;}
+.kpi-sub{font-size:11px;color:var(--text-dim);}
+
+/* ---------- bar chart (status distribution) ---------- */
+.chart-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.chart-row:last-child{margin-bottom:0;}
+.chart-label{width:150px;flex:none;font-size:12.3px;color:var(--text-dim);font-weight:700;text-align:right;}
+.chart-track{flex:1;background:var(--surface-2);border-radius:9px;height:16px;position:relative;overflow:hidden;}
+.chart-bar{height:100%;min-width:3px;border-radius:0 8px 8px 0;transition:width .25s ease;}
+.chart-value{width:30px;flex:none;font-weight:800;font-size:12.5px;text-align:left;font-variant-numeric:tabular-nums;}
+
+/* ---------- recent activity ---------- */
+.ra-list{display:flex;flex-direction:column;gap:0;}
+.ra-item{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--border);}
+.ra-item:last-child{border-bottom:none;}
+.ra-dot{width:8px;height:8px;border-radius:50%;background:var(--navy-2);flex:none;margin-top:5px;}
+.ra-text{font-size:12.6px;}
+.ra-time{font-size:11px;color:var(--text-dim);}
+
+/* ---------- filter bar ---------- */
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+.filter-bar input[type="text"]{flex:1;min-width:180px;padding:8px 12px;border:1.5px solid var(--border);border-radius:9px;background:var(--surface-2);color:var(--text);}
+.filter-bar select{padding:8px 10px;border:1.5px solid var(--border);border-radius:9px;background:var(--surface-2);color:var(--text);}
 
 .empty{text-align:center;padding:36px 20px;color:var(--text-dim);}
 .empty-icon{font-size:34px;margin-bottom:8px;}
@@ -335,7 +357,9 @@ table.do-table td{border:1px solid #d8cfa8;padding:6px 8px;}
 ===================================================================== */
 "use strict";
 
-var LS_KEY = "aot_do_demo_v3";
+var LS_KEY = "aot_do_demo_v4";
+
+function hoursAgo(h){ return new Date(Date.now() - h * 3600000).toISOString(); }
 
 function uid(p){ return p + "_" + Math.random().toString(36).slice(2,9); }
 function nowIso(){ return new Date().toISOString(); }
@@ -354,7 +378,7 @@ function esc(s){
 /* ---------------------- seed / mock database ---------------------- */
 function seedDB(){
   return {
-    doCounter: 1000,
+    doCounter: 1003,
     users: [
       {id:"tmo1", username:"tmo.somchai", password:"aot2026", role:"TMO", name:"สมชาย ใจดี", position:"เจ้าหน้าที่คลังสินค้า / ผู้อนุมัติ DO", staffId:"TMO-00231"},
       {id:"tmo2", username:"tmo.suda", password:"aot2026", role:"TMO", name:"สุดา วงศ์ทอง", position:"เจ้าหน้าที่คลังสินค้า / ผู้อนุมัติ DO", staffId:"TMO-00415"},
@@ -399,10 +423,148 @@ function seedDB(){
         houseConsignee:"Kerry Logistics (Thailand) Co., Ltd.", houseConsigneeTaxId:"0105536090809",
         flight:"TG970", flightDate:"2026-07-05", origin:"SIN", destination:"BKK",
         pieces:14, weight:"410 KG", goods:"Auto Parts (Consol)",
-        customsStatus:"CLEARED", cargoStatus:"AVAILABLE", storage:"AOT Cargo Terminal - Zone B/05", doStatus:null}
+        customsStatus:"CLEARED", cargoStatus:"AVAILABLE", storage:"AOT Cargo Terminal - Zone B/05", doStatus:null},
+      {id:"s6", mawb:"217-30011220", hawb:null, type:"Master (Direct)",
+        consignee:"Kerry Logistics (Thailand) Co., Ltd.", consigneeTaxId:"0105536090809",
+        flight:"TG888", flightDate:"2026-07-01", origin:"KIX", destination:"BKK",
+        pieces:6, weight:"150 KG", goods:"Auto Spare Parts", customsStatus:"CLEARED", cargoStatus:"AVAILABLE",
+        storage:"AOT Cargo Terminal - Zone A/09", doStatus:"ASSIGNED"},
+      {id:"s7", mawb:"217-30022330", hawb:null, type:"Master (Direct)",
+        consignee:"Kerry Logistics (Thailand) Co., Ltd.", consigneeTaxId:"0105536090809",
+        flight:"TG512", flightDate:"2026-07-04", origin:"CDG", destination:"BKK",
+        pieces:9, weight:"260 KG", goods:"Cosmetic Packaging", customsStatus:"CLEARED", cargoStatus:"AVAILABLE",
+        storage:"AOT Cargo Terminal - Zone A/10", doStatus:null},
+      {id:"s8", mawb:"217-30033440", hawb:"THB-771122", type:"House (Consolidation)",
+        consignee:"Global Consol Logistics Co., Ltd.", consigneeTaxId:"0105599991111",
+        houseConsignee:"DHL Global Forwarding (Thailand) Ltd.", houseConsigneeTaxId:"0105537083550",
+        flight:"TG205", flightDate:"2026-07-03", origin:"HKG", destination:"BKK",
+        pieces:22, weight:"600 KG", goods:"Consumer Goods (Consol)", customsStatus:"CLEARED", cargoStatus:"AVAILABLE",
+        storage:"AOT Cargo Terminal - Zone B/14", doStatus:null},
+      {id:"s9", mawb:"217-30044550", hawb:"THB-771133", type:"House (Consolidation)",
+        consignee:"Global Consol Logistics Co., Ltd.", consigneeTaxId:"0105599991111",
+        houseConsignee:"DHL Global Forwarding (Thailand) Ltd.", houseConsigneeTaxId:"0105537083550",
+        flight:"TG205", flightDate:"2026-06-28", origin:"HKG", destination:"BKK",
+        pieces:40, weight:"1,300 KG", goods:"Electronics (Consol)", customsStatus:"CLEARED", cargoStatus:"AVAILABLE",
+        storage:"AOT Cargo Terminal - Zone B/15", doStatus:"ASSIGNED"},
+      {id:"s10", mawb:"217-30055660", hawb:null, type:"Master (Direct)",
+        consignee:"Kerry Logistics (Thailand) Co., Ltd.", consigneeTaxId:"0105536090809",
+        flight:"TG150", flightDate:"2026-07-03", origin:"SIN", destination:"BKK",
+        pieces:3, weight:"75 KG", goods:"Documents / Samples", customsStatus:"CLEARED", cargoStatus:"AVAILABLE",
+        storage:"AOT Cargo Terminal - Zone A/11", doStatus:null},
+      {id:"s11", mawb:"217-30066770", hawb:null, type:"Master (Direct)",
+        consignee:"XYZ Trading Co., Ltd.", consigneeTaxId:"0105599998888",
+        flight:"TG777", flightDate:"2026-07-03", origin:"ICN", destination:"BKK",
+        pieces:7, weight:"190 KG", goods:"Textiles", customsStatus:"CLEARED", cargoStatus:"AVAILABLE",
+        storage:"AOT Cargo Terminal - Zone A/12", doStatus:null},
+      {id:"s12", mawb:"217-30077880", hawb:null, type:"Master (Direct)",
+        consignee:"Kerry Logistics (Thailand) Co., Ltd.", consigneeTaxId:"0105536090809",
+        flight:"TG920", flightDate:"2026-07-04", origin:"NRT", destination:"BKK",
+        pieces:15, weight:"410 KG", goods:"Machinery Accessories", customsStatus:"CLEARED", cargoStatus:"AVAILABLE",
+        storage:"AOT Cargo Terminal - Zone A/13", doStatus:"ASSIGNED"}
     ],
-    requests: [],
-    auditLog: []
+    requests: [
+      { id:"req_seed_s9", requesterId:"fwd2", requesterName:"Somsak Deelert", requesterCompany:"DHL Global Forwarding (Thailand) Ltd.", requesterTaxId:"0105537083550",
+        mawb:"217-30044550", hawb:"THB-771133", shipmentId:"s9", entitlement:"PASS_HOUSE", status:"DO_ASSIGNED",
+        documentStatus:"ATTACHED_COMPLETE",
+        docChecklist:[
+          {type:"เอกสารแนบเครื่อง (Flight Document)", required:true, state:"attached", scannedBy:"สุดา วงศ์ทอง", scannedAt:hoursAgo(148)},
+          {type:"MAWB Copy", required:false, state:"attached", scannedBy:"สุดา วงศ์ทอง", scannedAt:hoursAgo(148)},
+          {type:"HAWB Copy", required:true, state:"attached", scannedBy:"สุดา วงศ์ทอง", scannedAt:hoursAgo(147)},
+          {type:"Cargo Manifest / Breakdown Sheet", required:false, state:"attached", scannedBy:"สุดา วงศ์ทอง", scannedAt:hoursAgo(147)},
+          {type:"Warehouse Receiving Record", required:false, state:"missing", scannedBy:null, scannedAt:null}
+        ],
+        finalDecision:"APPROVED", decisionReason:"ผ่านเงื่อนไขครบถ้วน (Shipment / Identity / Entitlement / Document / Status)",
+        decisionBy:"สุดา วงศ์ทอง", decisionAt:hoursAgo(146), doRequestNo:"AOT-DO-2026-001001",
+        assignedTo:"DHL Global Forwarding (Thailand) Ltd.", assignedAt:hoursAgo(146),
+        createdAt:hoursAgo(150), updatedAt:hoursAgo(146) },
+      { id:"req_seed_s6", requesterId:"fwd1", requesterName:"วราภรณ์ พงษ์เจริญ", requesterCompany:"Kerry Logistics (Thailand) Co., Ltd.", requesterTaxId:"0105536090809",
+        mawb:"217-30011220", hawb:null, shipmentId:"s6", entitlement:"PASS_MASTER", status:"DO_ASSIGNED",
+        documentStatus:"ATTACHED_COMPLETE",
+        docChecklist:[
+          {type:"เอกสารแนบเครื่อง (Flight Document)", required:true, state:"attached", scannedBy:"สมชาย ใจดี", scannedAt:hoursAgo(70)},
+          {type:"MAWB Copy", required:false, state:"attached", scannedBy:"สมชาย ใจดี", scannedAt:hoursAgo(70)},
+          {type:"Cargo Manifest / Breakdown Sheet", required:false, state:"missing", scannedBy:null, scannedAt:null},
+          {type:"Warehouse Receiving Record", required:false, state:"missing", scannedBy:null, scannedAt:null}
+        ],
+        finalDecision:"APPROVED", decisionReason:"ผ่านเงื่อนไขครบถ้วน (Shipment / Identity / Entitlement / Document / Status)",
+        decisionBy:"สมชาย ใจดี", decisionAt:hoursAgo(68), doRequestNo:"AOT-DO-2026-001002",
+        assignedTo:"Kerry Logistics (Thailand) Co., Ltd.", assignedAt:hoursAgo(68),
+        createdAt:hoursAgo(72), updatedAt:hoursAgo(68) },
+      { id:"req_seed_s10", requesterId:"fwd3", requesterName:"Nattapong Srisuk", requesterCompany:"ABC Cargo Services Co., Ltd.", requesterTaxId:"0105558123456",
+        mawb:"217-30055660", hawb:null, shipmentId:"s10", entitlement:"FAIL", status:"ENTITLEMENT_FAILED",
+        documentStatus:null, docChecklist:[],
+        finalDecision:"REJECTED", decisionReason:"บัญชีผู้ใช้งานไม่ใช่ Consignee ตาม MAWB/HAWB และไม่มี Delegation ที่ถูกต้อง",
+        decisionBy:"SYSTEM", decisionAt:hoursAgo(26),
+        assignedTo:null, createdAt:hoursAgo(26), updatedAt:hoursAgo(26) },
+      { id:"req_seed_s8", requesterId:"fwd2", requesterName:"Somsak Deelert", requesterCompany:"DHL Global Forwarding (Thailand) Ltd.", requesterTaxId:"0105537083550",
+        mawb:"217-30033440", hawb:"THB-771122", shipmentId:"s8", entitlement:"PASS_HOUSE", status:"MANUAL_REVIEW",
+        documentStatus:"UNREADABLE",
+        docChecklist:[
+          {type:"เอกสารแนบเครื่อง (Flight Document)", required:true, state:"unreadable", scannedBy:"สมชาย ใจดี", scannedAt:hoursAgo(4)},
+          {type:"MAWB Copy", required:false, state:"missing", scannedBy:null, scannedAt:null},
+          {type:"HAWB Copy", required:true, state:"missing", scannedBy:null, scannedAt:null},
+          {type:"Cargo Manifest / Breakdown Sheet", required:false, state:"missing", scannedBy:null, scannedAt:null},
+          {type:"Warehouse Receiving Record", required:false, state:"missing", scannedBy:null, scannedAt:null}
+        ],
+        finalDecision:null, decisionReason:null, decisionBy:null, decisionAt:null,
+        assignedTo:null, createdAt:hoursAgo(30), updatedAt:hoursAgo(4) },
+      { id:"req_seed_s11", requesterId:"fwd3", requesterName:"Nattapong Srisuk", requesterCompany:"ABC Cargo Services Co., Ltd.", requesterTaxId:"0105558123456",
+        mawb:"217-30066770", hawb:null, shipmentId:"s11", entitlement:"PASS_DELEGATED", status:"READY_FOR_APPROVAL",
+        documentStatus:"ATTACHED_COMPLETE",
+        docChecklist:[
+          {type:"เอกสารแนบเครื่อง (Flight Document)", required:true, state:"attached", scannedBy:"สุดา วงศ์ทอง", scannedAt:hoursAgo(15)},
+          {type:"MAWB Copy", required:false, state:"attached", scannedBy:"สุดา วงศ์ทอง", scannedAt:hoursAgo(15)},
+          {type:"Cargo Manifest / Breakdown Sheet", required:false, state:"missing", scannedBy:null, scannedAt:null},
+          {type:"Warehouse Receiving Record", required:false, state:"missing", scannedBy:null, scannedAt:null}
+        ],
+        finalDecision:null, decisionReason:null, decisionBy:null, decisionAt:null,
+        assignedTo:null, createdAt:hoursAgo(20), updatedAt:hoursAgo(15) },
+      { id:"req_seed_s12", requesterId:"fwd1", requesterName:"วราภรณ์ พงษ์เจริญ", requesterCompany:"Kerry Logistics (Thailand) Co., Ltd.", requesterTaxId:"0105536090809",
+        mawb:"217-30077880", hawb:null, shipmentId:"s12", entitlement:"PASS_MASTER", status:"DO_ASSIGNED",
+        documentStatus:"ATTACHED_COMPLETE",
+        docChecklist:[
+          {type:"เอกสารแนบเครื่อง (Flight Document)", required:true, state:"attached", scannedBy:"สมชาย ใจดี", scannedAt:hoursAgo(9.5)},
+          {type:"MAWB Copy", required:false, state:"attached", scannedBy:"สมชาย ใจดี", scannedAt:hoursAgo(9.5)},
+          {type:"Cargo Manifest / Breakdown Sheet", required:false, state:"missing", scannedBy:null, scannedAt:null},
+          {type:"Warehouse Receiving Record", required:false, state:"missing", scannedBy:null, scannedAt:null}
+        ],
+        finalDecision:"APPROVED", decisionReason:"ผ่านเงื่อนไขครบถ้วน (Shipment / Identity / Entitlement / Document / Status)",
+        decisionBy:"สมชาย ใจดี", decisionAt:hoursAgo(9), doRequestNo:"AOT-DO-2026-001003",
+        assignedTo:"Kerry Logistics (Thailand) Co., Ltd.", assignedAt:hoursAgo(9),
+        createdAt:hoursAgo(10), updatedAt:hoursAgo(9) },
+      { id:"req_seed_s7", requesterId:"fwd1", requesterName:"วราภรณ์ พงษ์เจริญ", requesterCompany:"Kerry Logistics (Thailand) Co., Ltd.", requesterTaxId:"0105536090809",
+        mawb:"217-30022330", hawb:null, shipmentId:"s7", entitlement:"PASS_MASTER", status:"PENDING_DOCUMENT_SCAN",
+        documentStatus:"NOT_ATTACHED",
+        docChecklist:[
+          {type:"เอกสารแนบเครื่อง (Flight Document)", required:true, state:"missing", scannedBy:null, scannedAt:null},
+          {type:"MAWB Copy", required:false, state:"missing", scannedBy:null, scannedAt:null},
+          {type:"Cargo Manifest / Breakdown Sheet", required:false, state:"missing", scannedBy:null, scannedAt:null},
+          {type:"Warehouse Receiving Record", required:false, state:"missing", scannedBy:null, scannedAt:null}
+        ],
+        finalDecision:null, decisionReason:null, decisionBy:null, decisionAt:null,
+        assignedTo:null, createdAt:hoursAgo(5), updatedAt:hoursAgo(5) }
+    ],
+    auditLog: [
+      {id:"log_seed_1", at:hoursAgo(150), userId:"fwd2", userName:"Somsak Deelert", role:"FORWARDER", action:"DO_REQUEST_SUBMITTED", meta:{mawb:"217-30044550", hawb:"THB-771133", requestId:"req_seed_s9"}},
+      {id:"log_seed_2", at:hoursAgo(150), userId:"fwd2", userName:"Somsak Deelert", role:"FORWARDER", action:"SHIPMENT_MATCHED", meta:{requestId:"req_seed_s9", shipmentId:"s9"}},
+      {id:"log_seed_3", at:hoursAgo(150), userId:"fwd2", userName:"Somsak Deelert", role:"FORWARDER", action:"ENTITLEMENT_CHECKED", meta:{requestId:"req_seed_s9", result:"PASS_HOUSE"}},
+      {id:"log_seed_4", at:hoursAgo(147), userId:"tmo2", userName:"สุดา วงศ์ทอง", role:"TMO", action:"DOCUMENT_SCANNED", meta:{requestId:"req_seed_s9", doc:"HAWB Copy", state:"attached"}},
+      {id:"log_seed_5", at:hoursAgo(146), userId:"tmo2", userName:"สุดา วงศ์ทอง", role:"TMO", action:"DECISION_MADE", meta:{requestId:"req_seed_s9", decision:"APPROVE"}},
+      {id:"log_seed_6", at:hoursAgo(146), userId:"tmo2", userName:"สุดา วงศ์ทอง", role:"TMO", action:"DO_ASSIGNED", meta:{requestId:"req_seed_s9", doNo:"AOT-DO-2026-001001"}},
+      {id:"log_seed_7", at:hoursAgo(72), userId:"fwd1", userName:"วราภรณ์ พงษ์เจริญ", role:"FORWARDER", action:"DO_REQUEST_SUBMITTED", meta:{mawb:"217-30011220", hawb:"", requestId:"req_seed_s6"}},
+      {id:"log_seed_8", at:hoursAgo(72), userId:"fwd1", userName:"วราภรณ์ พงษ์เจริญ", role:"FORWARDER", action:"ENTITLEMENT_CHECKED", meta:{requestId:"req_seed_s6", result:"PASS_MASTER"}},
+      {id:"log_seed_9", at:hoursAgo(70), userId:"tmo1", userName:"สมชาย ใจดี", role:"TMO", action:"DOCUMENT_SCANNED", meta:{requestId:"req_seed_s6", doc:"เอกสารแนบเครื่อง (Flight Document)", state:"attached"}},
+      {id:"log_seed_10", at:hoursAgo(68), userId:"tmo1", userName:"สมชาย ใจดี", role:"TMO", action:"DO_ASSIGNED", meta:{requestId:"req_seed_s6", doNo:"AOT-DO-2026-001002"}},
+      {id:"log_seed_11", at:hoursAgo(30), userId:"fwd2", userName:"Somsak Deelert", role:"FORWARDER", action:"DO_REQUEST_SUBMITTED", meta:{mawb:"217-30033440", hawb:"THB-771122", requestId:"req_seed_s8"}},
+      {id:"log_seed_12", at:hoursAgo(4), userId:"tmo1", userName:"สมชาย ใจดี", role:"TMO", action:"DOCUMENT_SCANNED", meta:{requestId:"req_seed_s8", doc:"เอกสารแนบเครื่อง (Flight Document)", state:"unreadable"}},
+      {id:"log_seed_13", at:hoursAgo(26), userId:"fwd3", userName:"Nattapong Srisuk", role:"FORWARDER", action:"DO_REQUEST_SUBMITTED", meta:{mawb:"217-30055660", hawb:"", requestId:"req_seed_s10"}},
+      {id:"log_seed_14", at:hoursAgo(26), userId:"fwd3", userName:"Nattapong Srisuk", role:"FORWARDER", action:"ENTITLEMENT_CHECKED", meta:{requestId:"req_seed_s10", result:"FAIL"}},
+      {id:"log_seed_15", at:hoursAgo(20), userId:"fwd3", userName:"Nattapong Srisuk", role:"FORWARDER", action:"DO_REQUEST_SUBMITTED", meta:{mawb:"217-30066770", hawb:"", requestId:"req_seed_s11"}},
+      {id:"log_seed_16", at:hoursAgo(15), userId:"tmo2", userName:"สุดา วงศ์ทอง", role:"TMO", action:"DOCUMENT_SCANNED", meta:{requestId:"req_seed_s11", doc:"เอกสารแนบเครื่อง (Flight Document)", state:"attached"}},
+      {id:"log_seed_17", at:hoursAgo(10), userId:"fwd1", userName:"วราภรณ์ พงษ์เจริญ", role:"FORWARDER", action:"DO_REQUEST_SUBMITTED", meta:{mawb:"217-30077880", hawb:"", requestId:"req_seed_s12"}},
+      {id:"log_seed_18", at:hoursAgo(9), userId:"tmo1", userName:"สมชาย ใจดี", role:"TMO", action:"DO_ASSIGNED", meta:{requestId:"req_seed_s12", doNo:"AOT-DO-2026-001003"}},
+      {id:"log_seed_19", at:hoursAgo(5), userId:"fwd1", userName:"วราภรณ์ พงษ์เจริญ", role:"FORWARDER", action:"DO_REQUEST_SUBMITTED", meta:{mawb:"217-30022330", hawb:"", requestId:"req_seed_s7"}}
+    ]
   };
 }
 function loadDB(){
@@ -417,7 +579,8 @@ function loadDB(){
 function saveDB(d){ try{ localStorage.setItem(LS_KEY, JSON.stringify(d)); }catch(e){} }
 
 var db = loadDB();
-var session = { user: null, pendingUser: null, otpMode:false, view:"login", activeRequestId:null, showDoFor:null };
+var session = { user: null, pendingUser: null, otpMode:false, view:"login", activeRequestId:null, showDoFor:null,
+  fwdFilter:{q:"", bucket:"ALL"}, tmoFilter:{q:"", company:"ALL"} };
 var formDraft = { mawb:"", hawb:"" };
 var searchPreview = null;
 
@@ -602,6 +765,17 @@ function openRequest(id){
   render();
 }
 
+function applyFwdFilter(){
+  session.fwdFilter.q = document.getElementById("fwdSearchQ").value.trim().toLowerCase();
+  session.fwdFilter.bucket = document.getElementById("fwdBucketFilter").value;
+  render();
+}
+function applyTmoFilter(){
+  session.tmoFilter.q = document.getElementById("tmoSearchQ").value.trim().toLowerCase();
+  session.tmoFilter.company = document.getElementById("tmoCompanyFilter").value;
+  render();
+}
+
 function doSearchPreview(){
   var mawb = document.getElementById("inMawb").value.trim();
   var hawb = document.getElementById("inHawb").value.trim();
@@ -741,6 +915,74 @@ function docStatusBadge(ds){
   return '<span class="badge ' + m[0] + '">' + m[1] + "</span>";
 }
 
+/* ---------------------- dashboard analytics helpers ---------------------- */
+function isToday(iso){
+  if(!iso) return false;
+  var d = new Date(iso), n = new Date();
+  return d.getFullYear()===n.getFullYear() && d.getMonth()===n.getMonth() && d.getDate()===n.getDate();
+}
+function ageHours(iso){ return (Date.now() - new Date(iso).getTime()) / 3600000; }
+function fmtHours(h){
+  if(h === null || h === undefined || isNaN(h)) return "-";
+  if(h < 1) return Math.round(h*60) + " นาที";
+  if(h < 48) return h.toFixed(1) + " ชม.";
+  return (h/24).toFixed(1) + " วัน";
+}
+function avgTurnaroundHours(list){
+  var done = list.filter(function(r){ return r.status === "DO_ASSIGNED" && r.assignedAt; });
+  if(!done.length) return null;
+  var total = done.reduce(function(s,r){ return s + ageHours2(r.createdAt, r.assignedAt); }, 0);
+  return total / done.length;
+}
+function ageHours2(fromIso, toIso){ return (new Date(toIso).getTime() - new Date(fromIso).getTime()) / 3600000; }
+function agingBadge(req){
+  var active = ["PENDING_DOCUMENT_SCAN","READY_FOR_APPROVAL","MANUAL_REVIEW"];
+  if(active.indexOf(req.status) === -1){ return ""; }
+  var h = ageHours(req.createdAt);
+  if(h >= 24){ return '<span class="badge badge-danger">ล่าช้า ' + fmtHours(h) + '</span>'; }
+  if(h >= 4){ return '<span class="badge badge-warning">รอมา ' + fmtHours(h) + '</span>'; }
+  return '<span class="badge badge-gray">เพิ่งส่ง ' + fmtHours(h) + '</span>';
+}
+function bucketOf(status){
+  if(status === "DO_ASSIGNED"){ return "ASSIGNED"; }
+  if(status === "MANUAL_REVIEW"){ return "REVIEW"; }
+  if(status === "REJECTED" || status === "SHIPMENT_NOT_FOUND" || status === "ENTITLEMENT_FAILED"){ return "REJECTED"; }
+  return "ACTIVE";
+}
+function bucketCounts(list){
+  var b = {ACTIVE:0, REVIEW:0, ASSIGNED:0, REJECTED:0};
+  list.forEach(function(r){ b[bucketOf(r.status)]++; });
+  return [
+    {key:"ACTIVE", label:"กำลังดำเนินการ", count:b.ACTIVE, color:"var(--info)"},
+    {key:"REVIEW", label:"รอตรวจสอบเพิ่มเติม", count:b.REVIEW, color:"var(--warning)"},
+    {key:"ASSIGNED", label:"Assign DO แล้ว", count:b.ASSIGNED, color:"var(--success)"},
+    {key:"REJECTED", label:"ถูกปฏิเสธ", count:b.REJECTED, color:"var(--danger)"}
+  ];
+}
+function renderBarChart(rows){
+  var max = Math.max.apply(null, rows.map(function(r){ return r.count; }).concat([1]));
+  return '<div class="chart">' + rows.map(function(r){
+    var pct = r.count === 0 ? 0 : Math.max(4, Math.round((r.count/max)*100));
+    return '<div class="chart-row"><div class="chart-label">' + esc(r.label) + '</div>' +
+      '<div class="chart-track"><div class="chart-bar" style="width:' + pct + '%;background:' + r.color + ';"></div></div>' +
+      '<div class="chart-value">' + r.count + "</div></div>";
+  }).join("") + "</div>";
+}
+var ACTION_LABELS = {
+  LOGIN:"เข้าสู่ระบบ", LOGOUT:"ออกจากระบบ",
+  DO_REQUEST_SUBMITTED:"ส่งคำขอ DO ใหม่", SHIPMENT_MATCHED:"ระบบพบ Shipment ที่ตรงกัน",
+  ENTITLEMENT_CHECKED:"ตรวจสอบสิทธิ์ (Entitlement)", DOCUMENT_SCANNED:"สแกน/แนบเอกสาร",
+  DECISION_MADE:"ตัดสินใจคำขอ DO", DO_ASSIGNED:"Assign DO สำเร็จ"
+};
+function renderRecentActivity(logs, limit){
+  limit = limit || 6;
+  var items = logs.slice(0, limit).map(function(l){
+    return '<div class="ra-item"><div class="ra-dot"></div><div><div class="ra-text"><b>' + esc(l.userName) + "</b> " +
+      esc(ACTION_LABELS[l.action] || l.action) + '</div><div class="ra-time">' + fmt(l.at) + "</div></div></div>";
+  }).join("");
+  return '<div class="ra-list">' + (items || '<div class="empty" style="padding:16px;">ไม่มีกิจกรรมล่าสุด</div>') + "</div>";
+}
+
 /* ---------------------- render: shell ---------------------- */
 function render(){
   var app = document.getElementById("app");
@@ -866,36 +1108,72 @@ function renderFwdDashboard(){
   var kPending = mine.filter(function(r){ return r.status === "PENDING_DOCUMENT_SCAN" || r.status==="READY_FOR_APPROVAL"; }).length;
   var kReview = mine.filter(function(r){ return r.status === "MANUAL_REVIEW"; }).length;
   var kAssigned = mine.filter(function(r){ return r.status === "DO_ASSIGNED"; }).length;
-  var kRejected = mine.filter(function(r){ return r.status === "REJECTED" || r.status==="SHIPMENT_NOT_FOUND" || r.status==="ENTITLEMENT_FAILED"; }).length;
+  var avgTurn = avgTurnaroundHours(mine);
 
-  var rows = mine.map(function(r){
+  var f = session.fwdFilter;
+  var filtered = mine.filter(function(r){
+    if(f.bucket !== "ALL" && bucketOf(r.status) !== f.bucket){ return false; }
+    if(f.q){
+      var hay = (r.mawb + " " + (r.hawb||"")).toLowerCase();
+      if(hay.indexOf(f.q) === -1){ return false; }
+    }
+    return true;
+  });
+
+  var rows = filtered.map(function(r){
     var shipment = r.shipmentId ? getShipment(r.shipmentId) : null;
     return '<tr>' +
       "<td><b>" + esc(r.mawb) + "</b>" + (r.hawb ? "<br><span style='color:var(--text-dim);font-size:11.5px;'>HAWB " + esc(r.hawb) + "</span>" : "") + "</td>" +
       "<td>" + (shipment ? esc(shipment.consignee) : "-") + "</td>" +
       "<td>" + entitlementBadge(r.entitlement) + "</td>" +
       "<td>" + statusBadge(r.status) + "</td>" +
-      "<td>" + fmt(r.updatedAt) + "</td>" +
+      "<td>" + (agingBadge(r) || "<span style='color:var(--text-dim);font-size:11.5px;'>" + fmt(r.updatedAt) + "</span>") + "</td>" +
       "<td><button class='btn btn-outline btn-sm' onclick=\"openRequest('" + r.id + "')\">ดูรายละเอียด</button></td>" +
     "</tr>";
   }).join("");
 
-  return '' +
+  var myLogs = db.auditLog.filter(function(l){
+    var myReqIds = mine.map(function(r){ return r.id; });
+    return l.userId === session.user.id || (l.meta && l.meta.requestId && myReqIds.indexOf(l.meta.requestId) !== -1);
+  });
+
+  var html = '' +
   '<div class="card-head"><div><h2 style="margin:0;">แดชบอร์ดของฉัน</h2><div class="card-desc">' + esc(session.user.company) + " · Tax ID " + esc(session.user.taxId) + "</div></div>" +
     '<button class="btn btn-primary" onclick="goto(\'new-request\')">+ ขอ DO ใหม่</button></div>' +
   '<div class="grid grid-4">' +
     '<div class="card kpi"><div class="kpi-num">' + kAll + '</div><div class="kpi-label">คำขอทั้งหมด</div></div>' +
     '<div class="card kpi"><div class="kpi-num">' + kPending + '</div><div class="kpi-label">กำลังดำเนินการ</div></div>' +
     '<div class="card kpi"><div class="kpi-num">' + kReview + '</div><div class="kpi-label">รอตรวจสอบเพิ่มเติม</div></div>' +
-    '<div class="card kpi"><div class="kpi-num">' + kAssigned + '</div><div class="kpi-label">Assign DO แล้ว</div></div>' +
-  "</div>" +
-  '<div class="card">' +
+    '<div class="card kpi"><div class="kpi-num">' + kAssigned + '</div><div class="kpi-label">Assign DO แล้ว</div><div class="kpi-sub">เฉลี่ย ' + fmtHours(avgTurn) + " จนถึง Assign</div></div>" +
+  "</div>";
+
+  html += '<div class="grid grid-2">';
+  html += '<div class="card"><div class="card-title" style="margin-bottom:14px;">สัดส่วนคำขอตามสถานะ</div>' + renderBarChart(bucketCounts(mine)) + "</div>";
+  html += '<div class="card"><div class="card-title" style="margin-bottom:6px;">กิจกรรมล่าสุด</div>' + renderRecentActivity(myLogs, 6) + "</div>";
+  html += "</div>";
+
+  html += '<div class="card">' +
     '<div class="card-head"><div><div class="card-title">รายการคำขอ DO ของฉัน</div></div></div>' +
+    '<div class="filter-bar">' +
+      '<input id="fwdSearchQ" type="text" placeholder="ค้นหา MAWB / HAWB" value="' + esc(f.q) + '" onkeydown="if(event.key===\'Enter\')applyFwdFilter()">' +
+      '<select id="fwdBucketFilter" onchange="applyFwdFilter()">' +
+        '<option value="ALL"' + (f.bucket==="ALL"?" selected":"") + '>ทุกสถานะ</option>' +
+        '<option value="ACTIVE"' + (f.bucket==="ACTIVE"?" selected":"") + '>กำลังดำเนินการ</option>' +
+        '<option value="REVIEW"' + (f.bucket==="REVIEW"?" selected":"") + '>รอตรวจสอบเพิ่มเติม</option>' +
+        '<option value="ASSIGNED"' + (f.bucket==="ASSIGNED"?" selected":"") + '>Assign DO แล้ว</option>' +
+        '<option value="REJECTED"' + (f.bucket==="REJECTED"?" selected":"") + '>ถูกปฏิเสธ</option>' +
+      "</select>" +
+      '<button class="btn btn-outline btn-sm" onclick="applyFwdFilter()">กรอง</button>' +
+    "</div>" +
     (mine.length === 0 ?
       '<div class="empty"><div class="empty-icon">📦</div>ยังไม่มีคำขอ DO – กด "+ ขอ DO ใหม่" เพื่อเริ่มต้น</div>' :
-      '<div class="table-wrap"><table class="tbl"><thead><tr><th>MAWB/HAWB</th><th>Consignee</th><th>Entitlement</th><th>Status</th><th>Updated</th><th></th></tr></thead><tbody>' + rows + "</tbody></table></div>"
+      (filtered.length === 0 ?
+        '<div class="empty">ไม่พบคำขอที่ตรงกับเงื่อนไขการค้นหา</div>' :
+        '<div class="table-wrap"><table class="tbl"><thead><tr><th>MAWB/HAWB</th><th>Consignee</th><th>Entitlement</th><th>Status</th><th>Age / Updated</th><th></th></tr></thead><tbody>' + rows + "</tbody></table></div>"
+      )
     ) +
   "</div>";
+  return html;
 }
 
 function renderNewRequest(){
@@ -972,11 +1250,23 @@ function renderSearchPreview(res){
 
 /* ---------------------- render: TMO dashboard ---------------------- */
 function renderTmoDashboard(){
-  var all = db.requests;
+  var everything = db.requests;
+  var f = session.tmoFilter;
+  var all = everything.filter(function(r){
+    if(f.company !== "ALL" && r.requesterCompany !== f.company){ return false; }
+    if(f.q){
+      var hay = (r.mawb + " " + (r.hawb||"") + " " + (r.requesterCompany||"")).toLowerCase();
+      if(hay.indexOf(f.q) === -1){ return false; }
+    }
+    return true;
+  });
   var qScan = all.filter(function(r){ return r.status === "PENDING_DOCUMENT_SCAN"; });
   var qReady = all.filter(function(r){ return r.status === "READY_FOR_APPROVAL"; });
   var qReview = all.filter(function(r){ return r.status === "MANUAL_REVIEW"; });
   var qDone = all.filter(function(r){ return r.status === "DO_ASSIGNED"; });
+  var approvedToday = everything.filter(function(r){ return r.status === "DO_ASSIGNED" && isToday(r.assignedAt); }).length;
+  var avgApproval = avgTurnaroundHours(everything);
+  var companies = db.users.filter(function(u){ return u.role === "FORWARDER"; });
 
   function rows(list){
     return list.map(function(r){
@@ -988,27 +1278,44 @@ function renderTmoDashboard(){
         "<td>" + entitlementBadge(r.entitlement) + "</td>" +
         "<td>" + (r.documentStatus ? docStatusBadge(r.documentStatus) : "-") + "</td>" +
         "<td>" + statusBadge(r.status) + "</td>" +
+        "<td>" + (agingBadge(r) || "<span style='color:var(--text-dim);font-size:11.5px;'>-</span>") + "</td>" +
         "<td><button class='btn btn-primary btn-sm' onclick=\"openRequest('" + r.id + "')\">เปิดคำขอ</button></td>" +
       "</tr>";
     }).join("");
   }
   function table(list, emptyMsg){
     if(list.length === 0){ return '<div class="empty">' + emptyMsg + "</div>"; }
-    return '<div class="table-wrap"><table class="tbl"><thead><tr><th>MAWB/HAWB</th><th>Forwarder</th><th>Consignee</th><th>Entitlement</th><th>Document</th><th>Status</th><th></th></tr></thead><tbody>' + rows(list) + "</tbody></table></div>";
+    return '<div class="table-wrap"><table class="tbl"><thead><tr><th>MAWB/HAWB</th><th>Forwarder</th><th>Consignee</th><th>Entitlement</th><th>Document</th><th>Status</th><th>Aging</th><th></th></tr></thead><tbody>' + rows(list) + "</tbody></table></div>";
   }
 
-  return '' +
+  var html = '' +
   '<div class="card-head"><div><h2 style="margin:0;">คิวคำขอ DO</h2><div class="card-desc">' + esc(session.user.name) + " · " + esc(session.user.position) + "</div></div></div>" +
   '<div class="grid grid-4">' +
     '<div class="card kpi"><div class="kpi-num">' + qScan.length + '</div><div class="kpi-label">รอ Scan เอกสาร</div></div>' +
-    '<div class="card kpi"><div class="kpi-num">' + qReady.length + '</div><div class="kpi-label">รออนุมัติ</div></div>' +
     '<div class="card kpi"><div class="kpi-num">' + qReview.length + '</div><div class="kpi-label">Manual Review</div></div>' +
-    '<div class="card kpi"><div class="kpi-num">' + qDone.length + '</div><div class="kpi-label">Assign DO แล้ว</div></div>' +
-  "</div>" +
-  '<div class="card"><div class="card-title">รอคลังสินค้า Scan เอกสารแนบเครื่อง</div>' + table(qScan, "ไม่มีคำขอรอ Scan เอกสาร") + "</div>" +
+    '<div class="card kpi"><div class="kpi-num">' + approvedToday + '</div><div class="kpi-label">Assign DO วันนี้</div></div>' +
+    '<div class="card kpi"><div class="kpi-num">' + qDone.length + '</div><div class="kpi-label">Assign DO แล้ว (ทั้งหมด)</div><div class="kpi-sub">เฉลี่ย ' + fmtHours(avgApproval) + " ต่อคำขอ</div></div>" +
+  "</div>";
+
+  html += '<div class="grid grid-2">';
+  html += '<div class="card"><div class="card-title" style="margin-bottom:14px;">ภาพรวม Pipeline ทั้งระบบ</div>' + renderBarChart(bucketCounts(everything)) + "</div>";
+  html += '<div class="card"><div class="card-title" style="margin-bottom:6px;">กิจกรรมล่าสุดทั้งระบบ</div>' + renderRecentActivity(db.auditLog, 6) + "</div>";
+  html += "</div>";
+
+  html += '<div class="card"><div class="filter-bar">' +
+    '<input id="tmoSearchQ" type="text" placeholder="ค้นหา MAWB / HAWB / บริษัท Forwarder" value="' + esc(f.q) + '" onkeydown="if(event.key===\'Enter\')applyTmoFilter()">' +
+    '<select id="tmoCompanyFilter" onchange="applyTmoFilter()">' +
+      '<option value="ALL"' + (f.company==="ALL"?" selected":"") + '>ทุกบริษัท Forwarder</option>' +
+      companies.map(function(c){ return '<option value="' + esc(c.company) + '"' + (f.company===c.company?" selected":"") + '>' + esc(c.company) + "</option>"; }).join("") +
+    "</select>" +
+    '<button class="btn btn-outline btn-sm" onclick="applyTmoFilter()">กรอง</button>' +
+  "</div></div>";
+
+  html += '<div class="card"><div class="card-title">รอคลังสินค้า Scan เอกสารแนบเครื่อง</div>' + table(qScan, "ไม่มีคำขอรอ Scan เอกสาร") + "</div>" +
   '<div class="card"><div class="card-title">รอการอนุมัติ (เอกสารครบ)</div>' + table(qReady, "ไม่มีคำขอรออนุมัติ") + "</div>" +
   '<div class="card"><div class="card-title">ต้องตรวจสอบเพิ่มเติม (Manual Review)</div>' + table(qReview, "ไม่มีคำขอที่ต้องตรวจสอบเพิ่มเติม") + "</div>" +
   '<div class="card"><div class="card-title">Assign DO แล้ว (ล่าสุด)</div>' + table(qDone.slice(0,10), "ยังไม่มี DO ที่ Assign") + "</div>";
+  return html;
 }
 
 /* ---------------------- render: request detail (timeline) ---------------------- */
