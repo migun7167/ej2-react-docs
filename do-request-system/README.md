@@ -21,6 +21,9 @@ Everything (auth, shipments, documents, audit log) is mock data kept in
 | Freight Forwarder — Kerry | `kerry.agent` | `kerry2026` |
 | Freight Forwarder — DHL | `dhl.agent` | `dhl2026` |
 | Freight Forwarder — ABC | `abc.agent` | `abc2026` |
+| Shipping — สมศรี | `shipping.somsri` | `ship2026` |
+| Customs — พิชัย | `customs.pichai` | `cus2026` |
+| AOT (oversight) | `aot.admin` | `aot2026` |
 
 ## Try these MAWB/HAWB combos (as a Forwarder, on "+ ขอ DO ใหม่")
 
@@ -62,3 +65,28 @@ empty on first login:
 This is a UI/UX design prototype only — it is not connected to any real
 airline, customs, or AOT system, and the Delivery Order it renders is a
 mockup (clearly watermarked as such).
+
+## Roles 3–5: Shipping, Customs, AOT
+
+Once a DO is `DO_ASSIGNED`, the owning Forwarder can hand it off further,
+from the request's timeline (step 7):
+
+- **Shipping** — picked from a list by the Forwarder (any registered
+  Shipping account, not just their own). Shipping's dashboard only offers
+  **"View Only"** access to the DO document (no edit/decision actions),
+  plus a **"แสดง QR Code"** button that shows a QR-style code + an 8-char
+  token tied to that DO.
+- **Customs** — has two ways to pull up the same document: search by
+  **MAWB/HAWB**, or **enter the token** shown on Shipping's QR screen.
+  Because this is a single-browser demo, the QR is a visual simulation
+  (not camera-scannable) — the token entry stands in for "scanning" it.
+  Every open is logged as `CUSTOMS_REVIEWED` with the method used.
+- **AOT** — an oversight role that sees the full system-wide audit log
+  (who did what, when, and the result) and can look up a **per-shipment
+  timeline** by MAWB, showing every event across the request's life
+  (submitted → matched → entitlement → document scan → decision →
+  DO assigned → shipping assigned → customs reviews) in order.
+
+Two of the seeded historical DOs (`217-30011220`, `217-30044550`) already
+have a Shipping assignment + a past Customs review, so all three new
+dashboards show real data immediately.

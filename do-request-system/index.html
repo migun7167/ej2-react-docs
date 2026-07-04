@@ -211,6 +211,25 @@ table.tbl tr:hover td{background:var(--surface-2);}
 .filter-bar input[type="text"]{flex:1;min-width:180px;padding:8px 12px;border:1.5px solid var(--border);border-radius:9px;background:var(--surface-2);color:var(--text);}
 .filter-bar select{padding:8px 10px;border:1.5px solid var(--border);border-radius:9px;background:var(--surface-2);color:var(--text);}
 
+/* ---------- QR handoff ---------- */
+.qr-grid{display:grid;grid-template-columns:repeat(21,1fr);width:231px;height:231px;background:#fff;padding:14px;border-radius:8px;margin:0 auto;box-shadow:0 2px 10px rgba(0,0,0,.12);}
+.qr-cell{width:100%;height:100%;background:transparent;}
+.qr-cell.on{background:#141414;}
+.qr-token{font-family:monospace;font-size:20px;font-weight:800;letter-spacing:3px;text-align:center;margin-top:14px;color:var(--text);}
+.qr-note{font-size:11.5px;color:var(--text-dim);text-align:center;margin-top:6px;}
+
+/* ---------- role search cards ---------- */
+.search-card{display:flex;flex-direction:column;gap:10px;}
+.search-row{display:flex;gap:8px;flex-wrap:wrap;}
+.search-row input{flex:1;min-width:180px;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--surface-2);color:var(--text);}
+
+/* ---------- mini timeline (AOT shipment lookup) ---------- */
+.mtl{display:flex;flex-direction:column;gap:0;margin-top:8px;}
+.mtl-item{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12.4px;}
+.mtl-item:last-child{border-bottom:none;}
+.mtl-time{color:var(--text-dim);font-size:11.3px;white-space:nowrap;width:120px;flex:none;}
+.mtl-who{font-weight:700;}
+
 .empty{text-align:center;padding:36px 20px;color:var(--text-dim);}
 .empty-icon{font-size:34px;margin-bottom:8px;}
 
@@ -357,7 +376,7 @@ table.do-table td{border:1px solid #d8cfa8;padding:6px 8px;}
 ===================================================================== */
 "use strict";
 
-var LS_KEY = "aot_do_demo_v4";
+var LS_KEY = "aot_do_demo_v5";
 
 function hoursAgo(h){ return new Date(Date.now() - h * 3600000).toISOString(); }
 
@@ -384,7 +403,11 @@ function seedDB(){
       {id:"tmo2", username:"tmo.suda", password:"aot2026", role:"TMO", name:"สุดา วงศ์ทอง", position:"เจ้าหน้าที่คลังสินค้า / ผู้อนุมัติ DO", staffId:"TMO-00415"},
       {id:"fwd1", username:"kerry.agent", password:"kerry2026", role:"FORWARDER", name:"วราภรณ์ พงษ์เจริญ", company:"Kerry Logistics (Thailand) Co., Ltd.", taxId:"0105536090809"},
       {id:"fwd2", username:"dhl.agent", password:"dhl2026", role:"FORWARDER", name:"Somsak Deelert", company:"DHL Global Forwarding (Thailand) Ltd.", taxId:"0105537083550"},
-      {id:"fwd3", username:"abc.agent", password:"abc2026", role:"FORWARDER", name:"Nattapong Srisuk", company:"ABC Cargo Services Co., Ltd.", taxId:"0105558123456"}
+      {id:"fwd3", username:"abc.agent", password:"abc2026", role:"FORWARDER", name:"Nattapong Srisuk", company:"ABC Cargo Services Co., Ltd.", taxId:"0105558123456"},
+      {id:"ship1", username:"shipping.somsri", password:"ship2026", role:"SHIPPING", name:"สมศรี ขนส่งดี", company:"ทีมขนส่ง A (Own Fleet)"},
+      {id:"ship2", username:"shipping.anan", password:"ship2026", role:"SHIPPING", name:"อนันต์ รุ่งเรือง", company:"ทีมขนส่ง B (Contract Truck)"},
+      {id:"cus1", username:"customs.pichai", password:"cus2026", role:"CUSTOMS", name:"พิชัย ตรวจเข้ม", position:"เจ้าหน้าที่ศุลกากร ด่านสนามบิน"},
+      {id:"aot1", username:"aot.admin", password:"aot2026", role:"AOT", name:"ผู้บริหาร AOT", position:"AOT Cargo Community – Oversight"}
     ],
     delegations: [
       {consigneeTaxId:"0105512340000", consignee:"Siam Union Trading Co., Ltd.", delegateTaxId:"0105536090809", delegate:"Kerry Logistics (Thailand) Co., Ltd."},
@@ -476,7 +499,8 @@ function seedDB(){
         finalDecision:"APPROVED", decisionReason:"ผ่านเงื่อนไขครบถ้วน (Shipment / Identity / Entitlement / Document / Status)",
         decisionBy:"สุดา วงศ์ทอง", decisionAt:hoursAgo(146), doRequestNo:"AOT-DO-2026-001001",
         assignedTo:"DHL Global Forwarding (Thailand) Ltd.", assignedAt:hoursAgo(146),
-        createdAt:hoursAgo(150), updatedAt:hoursAgo(146) },
+        shippingId:"ship2", shippingName:"อนันต์ รุ่งเรือง", shippingAssignedBy:"Somsak Deelert", shippingAssignedAt:hoursAgo(140), qrToken:"AOT9M2XQ1",
+        createdAt:hoursAgo(150), updatedAt:hoursAgo(139) },
       { id:"req_seed_s6", requesterId:"fwd1", requesterName:"วราภรณ์ พงษ์เจริญ", requesterCompany:"Kerry Logistics (Thailand) Co., Ltd.", requesterTaxId:"0105536090809",
         mawb:"217-30011220", hawb:null, shipmentId:"s6", entitlement:"PASS_MASTER", status:"DO_ASSIGNED",
         documentStatus:"ATTACHED_COMPLETE",
@@ -489,7 +513,8 @@ function seedDB(){
         finalDecision:"APPROVED", decisionReason:"ผ่านเงื่อนไขครบถ้วน (Shipment / Identity / Entitlement / Document / Status)",
         decisionBy:"สมชาย ใจดี", decisionAt:hoursAgo(68), doRequestNo:"AOT-DO-2026-001002",
         assignedTo:"Kerry Logistics (Thailand) Co., Ltd.", assignedAt:hoursAgo(68),
-        createdAt:hoursAgo(72), updatedAt:hoursAgo(68) },
+        shippingId:"ship1", shippingName:"สมศรี ขนส่งดี", shippingAssignedBy:"วราภรณ์ พงษ์เจริญ", shippingAssignedAt:hoursAgo(60), qrToken:"AOT7F3K29",
+        createdAt:hoursAgo(72), updatedAt:hoursAgo(50) },
       { id:"req_seed_s10", requesterId:"fwd3", requesterName:"Nattapong Srisuk", requesterCompany:"ABC Cargo Services Co., Ltd.", requesterTaxId:"0105558123456",
         mawb:"217-30055660", hawb:null, shipmentId:"s10", entitlement:"FAIL", status:"ENTITLEMENT_FAILED",
         documentStatus:null, docChecklist:[],
@@ -563,7 +588,11 @@ function seedDB(){
       {id:"log_seed_16", at:hoursAgo(15), userId:"tmo2", userName:"สุดา วงศ์ทอง", role:"TMO", action:"DOCUMENT_SCANNED", meta:{requestId:"req_seed_s11", doc:"เอกสารแนบเครื่อง (Flight Document)", state:"attached"}},
       {id:"log_seed_17", at:hoursAgo(10), userId:"fwd1", userName:"วราภรณ์ พงษ์เจริญ", role:"FORWARDER", action:"DO_REQUEST_SUBMITTED", meta:{mawb:"217-30077880", hawb:"", requestId:"req_seed_s12"}},
       {id:"log_seed_18", at:hoursAgo(9), userId:"tmo1", userName:"สมชาย ใจดี", role:"TMO", action:"DO_ASSIGNED", meta:{requestId:"req_seed_s12", doNo:"AOT-DO-2026-001003"}},
-      {id:"log_seed_19", at:hoursAgo(5), userId:"fwd1", userName:"วราภรณ์ พงษ์เจริญ", role:"FORWARDER", action:"DO_REQUEST_SUBMITTED", meta:{mawb:"217-30022330", hawb:"", requestId:"req_seed_s7"}}
+      {id:"log_seed_19", at:hoursAgo(5), userId:"fwd1", userName:"วราภรณ์ พงษ์เจริญ", role:"FORWARDER", action:"DO_REQUEST_SUBMITTED", meta:{mawb:"217-30022330", hawb:"", requestId:"req_seed_s7"}},
+      {id:"log_seed_20", at:hoursAgo(140), userId:"fwd2", userName:"Somsak Deelert", role:"FORWARDER", action:"SHIPPING_ASSIGNED", meta:{requestId:"req_seed_s9", shippingId:"ship2"}},
+      {id:"log_seed_21", at:hoursAgo(139), userId:"cus1", userName:"พิชัย ตรวจเข้ม", role:"CUSTOMS", action:"CUSTOMS_REVIEWED", meta:{requestId:"req_seed_s9", method:"QR_TOKEN"}},
+      {id:"log_seed_22", at:hoursAgo(60), userId:"fwd1", userName:"วราภรณ์ พงษ์เจริญ", role:"FORWARDER", action:"SHIPPING_ASSIGNED", meta:{requestId:"req_seed_s6", shippingId:"ship1"}},
+      {id:"log_seed_23", at:hoursAgo(50), userId:"cus1", userName:"พิชัย ตรวจเข้ม", role:"CUSTOMS", action:"CUSTOMS_REVIEWED", meta:{requestId:"req_seed_s6", method:"AWB_SEARCH"}}
     ]
   };
 }
@@ -580,7 +609,7 @@ function saveDB(d){ try{ localStorage.setItem(LS_KEY, JSON.stringify(d)); }catch
 
 var db = loadDB();
 var session = { user: null, pendingUser: null, otpMode:false, view:"login", activeRequestId:null, showDoFor:null,
-  fwdFilter:{q:"", bucket:"ALL"}, tmoFilter:{q:"", company:"ALL"} };
+  fwdFilter:{q:"", bucket:"ALL"}, tmoFilter:{q:"", company:"ALL"}, showQrFor:null, aotTimelineQuery:{mawb:""} };
 var formDraft = { mawb:"", hawb:"" };
 var searchPreview = null;
 
@@ -659,7 +688,8 @@ function createRequestFromEval(user, mawb, hawb, res){
     id: uid("req"), requesterId:user.id, requesterName:user.name,
     requesterCompany:user.company || null, requesterTaxId:user.taxId || null,
     mawb:mawb, hawb: hawb || null, createdAt:now, updatedAt:now,
-    doRequestNo:null, assignedTo:null, decisionBy:null, decisionAt:null
+    doRequestNo:null, assignedTo:null, decisionBy:null, decisionAt:null,
+    shippingId:null, shippingName:null, shippingAssignedBy:null, shippingAssignedAt:null, qrToken:null
   };
   var req;
   if(res.kind === "not_found"){
@@ -708,6 +738,10 @@ function showToast(msg, kind){
   setTimeout(function(){ el.remove(); }, 3200);
 }
 
+function defaultViewForRole(role){
+  var map = { TMO:"tmo-dashboard", FORWARDER:"fwd-dashboard", SHIPPING:"shipping-dashboard", CUSTOMS:"customs-dashboard", AOT:"aot-dashboard" };
+  return map[role] || "fwd-dashboard";
+}
 function doLoginSubmit(){
   var u = document.getElementById("inUser").value.trim();
   var p = document.getElementById("inPass").value;
@@ -735,7 +769,7 @@ function doOtpVerify(){
   session.user = session.pendingUser;
   session.pendingUser = null;
   session.otpMode = false;
-  session.view = session.user.role === "TMO" ? "tmo-dashboard" : "fwd-dashboard";
+  session.view = defaultViewForRole(session.user.role);
   logAudit(session.user, "LOGIN", {});
   saveDB(db);
   render();
@@ -861,6 +895,56 @@ function openDoDocument(reqId){ session.showDoFor = reqId; render(); }
 function closeDoDocument(){ session.showDoFor = null; render(); }
 function printDoDocument(){ window.print(); }
 
+/* ---------------------- Shipping / Customs / AOT actions ---------------------- */
+function assignShipping(reqId){
+  var req = db.requests.filter(function(r){ return r.id === reqId; })[0];
+  if(!req || session.user.role !== "FORWARDER" || req.requesterId !== session.user.id){ return; }
+  var sel = document.getElementById("shippingSelect_" + reqId);
+  var shippingId = sel ? sel.value : "";
+  var shipUser = db.users.filter(function(u){ return u.id === shippingId; })[0];
+  if(!shipUser){ showToast("กรุณาเลือกผู้ขนส่ง", "error"); return; }
+  req.shippingId = shipUser.id;
+  req.shippingName = shipUser.name;
+  req.shippingAssignedBy = session.user.name;
+  req.shippingAssignedAt = nowIso();
+  req.qrToken = genQrToken();
+  req.updatedAt = nowIso();
+  logAudit(session.user, "SHIPPING_ASSIGNED", {requestId:req.id, shippingId:shipUser.id});
+  saveDB(db);
+  showToast("มอบหมายงานขนส่งให้ " + shipUser.name + " เรียบร้อยแล้ว", "ok");
+  render();
+}
+function shippingViewDocument(reqId){
+  logAudit(session.user, "SHIPPING_VIEWED_DOCUMENT", {requestId:reqId});
+  saveDB(db);
+  openDoDocument(reqId);
+}
+function showQrForRequest(reqId){ session.showQrFor = reqId; render(); }
+function closeQrModal(){ session.showQrFor = null; render(); }
+function customsViewDocument(reqId, method){
+  logAudit(session.user, "CUSTOMS_REVIEWED", {requestId:reqId, method:method});
+  saveDB(db);
+  openDoDocument(reqId);
+}
+function customsSearchByAwb(){
+  var val = document.getElementById("customsAwbInput").value.trim();
+  if(!val){ showToast("กรุณากรอกเลข MAWB หรือ HAWB", "error"); return; }
+  var req = db.requests.filter(function(r){ return r.status === "DO_ASSIGNED" && (r.mawb === val || r.hawb === val); })[0];
+  if(!req){ showToast("ไม่พบ DO ที่ Assign แล้วสำหรับเลขนี้", "error"); return; }
+  customsViewDocument(req.id, "AWB_SEARCH");
+}
+function customsSearchByToken(){
+  var val = document.getElementById("customsTokenInput").value.trim().toUpperCase();
+  if(!val){ showToast("กรุณากรอกรหัสจาก QR", "error"); return; }
+  var req = db.requests.filter(function(r){ return r.status === "DO_ASSIGNED" && r.qrToken === val; })[0];
+  if(!req){ showToast("รหัส QR ไม่ถูกต้อง หรือ DO นี้ยังไม่ถูก Assign", "error"); return; }
+  customsViewDocument(req.id, "QR_TOKEN");
+}
+function searchAotTimeline(){
+  session.aotTimelineQuery = { mawb: document.getElementById("aotMawbInput").value.trim() };
+  render();
+}
+
 function toggleTheme(){
   var root = document.documentElement;
   var cur = root.getAttribute("data-theme");
@@ -874,7 +958,8 @@ function resetDemo(){
   try{ localStorage.removeItem(LS_KEY); }catch(e){}
   db = seedDB();
   saveDB(db);
-  session = { user:null, pendingUser:null, otpMode:false, view:"login", activeRequestId:null, showDoFor:null };
+  session = { user:null, pendingUser:null, otpMode:false, view:"login", activeRequestId:null, showDoFor:null,
+    fwdFilter:{q:"", bucket:"ALL"}, tmoFilter:{q:"", company:"ALL"}, showQrFor:null, aotTimelineQuery:{mawb:""} };
   render();
 }
 
@@ -972,15 +1057,55 @@ var ACTION_LABELS = {
   LOGIN:"เข้าสู่ระบบ", LOGOUT:"ออกจากระบบ",
   DO_REQUEST_SUBMITTED:"ส่งคำขอ DO ใหม่", SHIPMENT_MATCHED:"ระบบพบ Shipment ที่ตรงกัน",
   ENTITLEMENT_CHECKED:"ตรวจสอบสิทธิ์ (Entitlement)", DOCUMENT_SCANNED:"สแกน/แนบเอกสาร",
-  DECISION_MADE:"ตัดสินใจคำขอ DO", DO_ASSIGNED:"Assign DO สำเร็จ"
+  DECISION_MADE:"ตัดสินใจคำขอ DO", DO_ASSIGNED:"Assign DO สำเร็จ",
+  SHIPPING_ASSIGNED:"มอบหมายผู้ขนส่ง (Shipping)", SHIPPING_VIEWED_DOCUMENT:"ผู้ขนส่งเปิดดูเอกสาร",
+  CUSTOMS_REVIEWED:"ศุลกากรตรวจสอบเอกสาร"
 };
+function sortLogsDesc(logs){ return logs.slice().sort(function(a,b){ return new Date(b.at) - new Date(a.at); }); }
+function sortLogsAsc(logs){ return logs.slice().sort(function(a,b){ return new Date(a.at) - new Date(b.at); }); }
 function renderRecentActivity(logs, limit){
   limit = limit || 6;
-  var items = logs.slice(0, limit).map(function(l){
+  var items = sortLogsDesc(logs).slice(0, limit).map(function(l){
     return '<div class="ra-item"><div class="ra-dot"></div><div><div class="ra-text"><b>' + esc(l.userName) + "</b> " +
       esc(ACTION_LABELS[l.action] || l.action) + '</div><div class="ra-time">' + fmt(l.at) + "</div></div></div>";
   }).join("");
   return '<div class="ra-list">' + (items || '<div class="empty" style="padding:16px;">ไม่มีกิจกรรมล่าสุด</div>') + "</div>";
+}
+
+/* ---------------------- QR handoff (Shipping -> Customs) ---------------------- */
+function genQrToken(){ return Math.random().toString(36).slice(2,10).toUpperCase(); }
+function strHash(s){
+  var h = 0;
+  for(var i=0; i<s.length; i++){ h = (h * 31 + s.charCodeAt(i)) | 0; }
+  return h >>> 0;
+}
+function mulberry32(seed){
+  return function(){
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function qrFinderOn(x, y, size){
+  var lx = x < 7 ? x : (x - (size - 7));
+  var ly = y < 7 ? y : (y - (size - 7));
+  var border = lx === 0 || lx === 6 || ly === 0 || ly === 6;
+  var inner = lx >= 2 && lx <= 4 && ly >= 2 && ly <= 4;
+  return border || inner;
+}
+function renderQrGrid(token){
+  var size = 21;
+  var rand = mulberry32(strHash(token || "AOT"));
+  var cells = "";
+  for(var y=0; y<size; y++){
+    for(var x=0; x<size; x++){
+      var inFinder = (x<7 && y<7) || (x>=size-7 && y<7) || (x<7 && y>=size-7);
+      var on = inFinder ? qrFinderOn(x, y, size) : (rand() > 0.55);
+      cells += '<div class="qr-cell' + (on ? " on" : "") + '"></div>';
+    }
+  }
+  return '<div class="qr-grid">' + cells + "</div>";
 }
 
 /* ---------------------- render: shell ---------------------- */
@@ -994,13 +1119,17 @@ function render(){
   if(session.view === "fwd-dashboard"){ body = renderFwdDashboard(); }
   else if(session.view === "new-request"){ body = renderNewRequest(); }
   else if(session.view === "tmo-dashboard"){ body = renderTmoDashboard(); }
+  else if(session.view === "shipping-dashboard"){ body = renderShippingDashboard(); }
+  else if(session.view === "customs-dashboard"){ body = renderCustomsDashboard(); }
+  else if(session.view === "aot-dashboard"){ body = renderAotDashboard(); }
   else if(session.view === "request-detail"){ body = renderRequestDetail(session.activeRequestId); }
   else if(session.view === "audit-log"){ body = renderAuditLog(); }
-  else { body = renderFwdDashboard(); }
+  else { session.view = defaultViewForRole(session.user.role); render(); return; }
 
   app.innerHTML = renderTopbar() +
     '<div class="layout">' + renderSidebar() + '<div class="main">' + body + "</div></div>" +
-    (session.showDoFor ? renderDoModal(session.showDoFor) : "");
+    (session.showDoFor ? renderDoModal(session.showDoFor) : "") +
+    (session.showQrFor ? renderQrModal(session.showQrFor) : "");
 }
 
 function renderTopbar(){
@@ -1020,7 +1149,7 @@ function renderTopbar(){
         '<div class="user-avatar">' + esc(initials) + "</div>" +
         '<div class="user-meta">' +
           '<div class="user-name">' + esc(session.user.name) + "</div>" +
-          '<div class="user-role">' + (session.user.role === "TMO" ? esc(session.user.position) : esc(session.user.company)) + "</div>" +
+          '<div class="user-role">' + esc(session.user.position || session.user.company || "") + "</div>" +
         "</div>" +
       "</div>" +
       '<button class="btn-logout" onclick="doLogout()">ออกจากระบบ</button>' +
@@ -1039,12 +1168,24 @@ function renderSidebar(){
     html += navItem("fwd-dashboard", "แดชบอร์ดของฉัน", v);
     html += navItem("new-request", "+ ขอ DO ใหม่", v);
     html += navItem("audit-log", "ประวัติการดำเนินการ (Audit Log)", v);
-  } else {
+  } else if(session.user.role === "TMO"){
     html += '<div class="nav-group-label">TMO – AOT Cargo Terminal</div>';
     html += navItem("tmo-dashboard", "คิวคำขอ DO", v);
     html += navItem("audit-log", "ประวัติการดำเนินการ (Audit Log)", v);
     html += '<div class="nav-group-label">System</div>';
     html += '<button class="nav-item" onclick="resetDemo()"><span class="nav-dot"></span>รีเซ็ตข้อมูลตัวอย่าง</button>';
+  } else if(session.user.role === "SHIPPING"){
+    html += '<div class="nav-group-label">Shipping / ผู้ขนส่ง</div>';
+    html += navItem("shipping-dashboard", "งานขนส่งของฉัน", v);
+    html += navItem("audit-log", "ประวัติการดำเนินการ", v);
+  } else if(session.user.role === "CUSTOMS"){
+    html += '<div class="nav-group-label">Customs – ศุลกากร</div>';
+    html += navItem("customs-dashboard", "ตรวจสอบเอกสาร DO", v);
+    html += navItem("audit-log", "ประวัติการตรวจของฉัน", v);
+  } else {
+    html += '<div class="nav-group-label">AOT – Oversight</div>';
+    html += navItem("aot-dashboard", "ภาพรวมระบบ & Shipment Timeline", v);
+    html += navItem("audit-log", "Audit Log (ทั้งหมด)", v);
   }
   html += "</div>";
   return html;
@@ -1081,6 +1222,9 @@ function renderLogin(){
         '<button class="demo-acc-btn" onclick="fillDemoAccount(\'kerry.agent\',\'kerry2026\')"><b>Forwarder – Kerry</b>kerry.agent / kerry2026</button>' +
         '<button class="demo-acc-btn" onclick="fillDemoAccount(\'dhl.agent\',\'dhl2026\')"><b>Forwarder – DHL</b>dhl.agent / dhl2026</button>' +
         '<button class="demo-acc-btn" onclick="fillDemoAccount(\'abc.agent\',\'abc2026\')"><b>Forwarder – ABC</b>abc.agent / abc2026</button>' +
+        '<button class="demo-acc-btn" onclick="fillDemoAccount(\'shipping.somsri\',\'ship2026\')"><b>Shipping – สมศรี</b>shipping.somsri / ship2026</button>' +
+        '<button class="demo-acc-btn" onclick="fillDemoAccount(\'customs.pichai\',\'cus2026\')"><b>Customs – พิชัย</b>customs.pichai / cus2026</button>' +
+        '<button class="demo-acc-btn" onclick="fillDemoAccount(\'aot.admin\',\'aot2026\')"><b>AOT – Oversight</b>aot.admin / aot2026</button>' +
       "</div>" +
       '<div class="login-footnote">Prototype สำหรับออกแบบระบบเท่านั้น ข้อมูลทั้งหมดเป็น Mock Data</div>' +
     "</div>" +
@@ -1318,13 +1462,111 @@ function renderTmoDashboard(){
   return html;
 }
 
+/* ---------------------- render: Shipping dashboard ---------------------- */
+function renderShippingDashboard(){
+  var mine = db.requests.filter(function(r){ return r.shippingId === session.user.id; });
+  var rows = mine.map(function(r){
+    var shipment = r.shipmentId ? getShipment(r.shipmentId) : null;
+    return '<tr>' +
+      "<td><b>" + esc(r.mawb) + "</b>" + (r.hawb ? "<br><span style='color:var(--text-dim);font-size:11.5px;'>HAWB " + esc(r.hawb) + "</span>" : "") + "</td>" +
+      "<td>" + esc(r.doRequestNo || "-") + "</td>" +
+      "<td>" + (shipment ? esc(shipment.consignee) : "-") + "</td>" +
+      "<td>" + esc(r.requesterCompany || "-") + "</td>" +
+      "<td>" + fmt(r.shippingAssignedAt) + "</td>" +
+      "<td><div class='chip-row'>" +
+        "<button class='btn btn-outline btn-sm' onclick=\"shippingViewDocument('" + r.id + "')\">ดูเอกสาร (View Only)</button>" +
+        "<button class='btn btn-gold btn-sm' onclick=\"showQrForRequest('" + r.id + "')\">แสดง QR Code</button>" +
+      "</div></td>" +
+    "</tr>";
+  }).join("");
+  return '' +
+  '<div class="card-head"><div><h2 style="margin:0;">งานขนส่งของฉัน</h2><div class="card-desc">' + esc(session.user.name) + " · " + esc(session.user.company) + "</div></div></div>" +
+  '<div class="grid grid-4">' +
+    '<div class="card kpi"><div class="kpi-num">' + mine.length + '</div><div class="kpi-label">งานที่ได้รับมอบหมายทั้งหมด</div></div>' +
+  "</div>" +
+  '<div class="card"><div class="card-title">รายการ DO ที่ต้องไปรับสินค้า</div>' +
+    (mine.length === 0 ?
+      '<div class="empty"><div class="empty-icon">🚚</div>ยังไม่มีงานขนส่งที่ได้รับมอบหมาย — รอ Freight Forwarder มอบหมายงานจากหน้ารายละเอียดคำขอ DO</div>' :
+      '<div class="table-wrap"><table class="tbl"><thead><tr><th>MAWB/HAWB</th><th>DO No.</th><th>Consignee</th><th>Forwarder</th><th>มอบหมายเมื่อ</th><th></th></tr></thead><tbody>' + rows + "</tbody></table></div>"
+    ) +
+  "</div>" +
+  '<div class="card"><div class="card-desc">สิทธิ์ของ Shipping: ดูเอกสาร DO ได้แบบอ่านอย่างเดียว (View Document Only) และแสดง QR Code ให้เจ้าหน้าที่ศุลกากร (Customs) สแกน/กรอกรหัสเพื่อตรวจสอบเอกสารชุดเดียวกัน</div></div>';
+}
+
+/* ---------------------- render: Customs dashboard ---------------------- */
+function renderCustomsDashboard(){
+  var myReviews = db.auditLog.filter(function(l){ return l.userId === session.user.id && l.action === "CUSTOMS_REVIEWED"; });
+  var rows = sortLogsDesc(myReviews).slice(0,20).map(function(l){
+    var req = db.requests.filter(function(r){ return r.id === l.meta.requestId; })[0];
+    return "<tr><td>" + fmt(l.at) + "</td><td>" + (req ? esc(req.mawb) : "-") + "</td><td>" + (req ? esc(req.doRequestNo || "-") : "-") + "</td>" +
+      "<td><span class='badge badge-gray'>" + esc(l.meta.method) + "</span></td>" +
+      (req ? "<td><button class='btn btn-outline btn-sm' onclick=\"customsViewDocument('" + req.id + "','REOPEN')\">เปิดอีกครั้ง</button></td>" : "<td>-</td>") +
+    "</tr>";
+  }).join("");
+  return '' +
+  '<div class="card-head"><div><h2 style="margin:0;">ตรวจสอบเอกสาร DO (Customs)</h2><div class="card-desc">' + esc(session.user.name) + " · " + esc(session.user.position) + "</div></div></div>" +
+  '<div class="grid grid-2">' +
+    '<div class="card search-card"><div class="card-title">ค้นหาด้วยเลข AWB</div><div class="card-desc">พิมพ์เลข MAWB หรือ HAWB ที่ปรากฏบนสินค้า/เอกสาร</div>' +
+      '<div class="search-row"><input id="customsAwbInput" type="text" placeholder="เช่น 217-12345678" onkeydown="if(event.key===\'Enter\')customsSearchByAwb()"><button class="btn btn-primary" onclick="customsSearchByAwb()">ค้นหา</button></div>' +
+    "</div>" +
+    '<div class="card search-card"><div class="card-title">กรอกรหัสจาก QR (จำลองการสแกน)</div><div class="card-desc">ให้ผู้ขนส่ง (Shipping) แสดง QR แล้วกรอกรหัส 8 หลักด้านล่าง QR ที่นี่</div>' +
+      '<div class="search-row"><input id="customsTokenInput" type="text" placeholder="เช่น AOT7F3K29" onkeydown="if(event.key===\'Enter\')customsSearchByToken()"><button class="btn btn-gold" onclick="customsSearchByToken()">ตรวจสอบรหัส</button></div>' +
+    "</div>" +
+  "</div>" +
+  '<div class="card"><div class="card-title">ประวัติการตรวจของฉัน (ล่าสุด)</div>' +
+    (rows ? '<div class="table-wrap"><table class="tbl"><thead><tr><th>เวลา</th><th>MAWB</th><th>DO No.</th><th>วิธีตรวจสอบ</th><th></th></tr></thead><tbody>' + rows + "</tbody></table></div>" : '<div class="empty">ยังไม่มีประวัติการตรวจสอบเอกสาร</div>') +
+  "</div>";
+}
+
+/* ---------------------- render: AOT oversight dashboard ---------------------- */
+function renderAotDashboard(){
+  var everything = db.requests;
+  var totalReviews = db.auditLog.filter(function(l){ return l.action === "CUSTOMS_REVIEWED"; }).length;
+  var totalAssigned = everything.filter(function(r){ return r.status === "DO_ASSIGNED"; }).length;
+  var shippedOut = everything.filter(function(r){ return !!r.shippingId; }).length;
+
+  var html = '<div class="card-head"><div><h2 style="margin:0;">ภาพรวมระบบ (AOT Oversight)</h2><div class="card-desc">' + esc(session.user.name) + " · " + esc(session.user.position) + "</div></div></div>" +
+  '<div class="grid grid-4">' +
+    '<div class="card kpi"><div class="kpi-num">' + everything.length + '</div><div class="kpi-label">คำขอ DO ทั้งหมดในระบบ</div></div>' +
+    '<div class="card kpi"><div class="kpi-num">' + totalAssigned + '</div><div class="kpi-label">Assign DO แล้ว</div></div>' +
+    '<div class="card kpi"><div class="kpi-num">' + shippedOut + '</div><div class="kpi-label">มอบหมายผู้ขนส่งแล้ว</div></div>' +
+    '<div class="card kpi"><div class="kpi-num">' + totalReviews + '</div><div class="kpi-label">ครั้งที่ Customs ตรวจสอบเอกสาร</div></div>' +
+  "</div>";
+
+  html += '<div class="grid grid-2">';
+  html += '<div class="card"><div class="card-title" style="margin-bottom:14px;">ภาพรวม Pipeline ทั้งระบบ</div>' + renderBarChart(bucketCounts(everything)) + "</div>";
+  html += '<div class="card"><div class="card-title" style="margin-bottom:6px;">กิจกรรมล่าสุดทั้งระบบ</div>' + renderRecentActivity(db.auditLog, 8) + "</div>";
+  html += "</div>";
+
+  html += '<div class="card"><div class="card-title">ค้นหา Shipment Timeline</div><div class="card-desc">กรอกเลข MAWB เพื่อดูลำดับเหตุการณ์ทั้งหมดของคำขอ DO ที่เกี่ยวข้อง (ใครทำอะไร เมื่อไหร่ ผลเป็นอย่างไร)</div>' +
+    '<div class="search-row" style="margin-top:10px;"><input id="aotMawbInput" type="text" placeholder="เช่น 217-12345678" value="' + esc(session.aotTimelineQuery.mawb) + '" onkeydown="if(event.key===\'Enter\')searchAotTimeline()"><button class="btn btn-primary" onclick="searchAotTimeline()">ค้นหา Timeline</button></div>' +
+    renderAotTimelineResults(session.aotTimelineQuery.mawb) +
+  "</div>";
+  return html;
+}
+function renderAotTimelineResults(mawb){
+  if(!mawb){ return ""; }
+  var matches = db.requests.filter(function(r){ return r.mawb === mawb; });
+  if(matches.length === 0){ return '<div class="empty" style="margin-top:10px;">ไม่พบคำขอ DO สำหรับ MAWB นี้</div>'; }
+  return matches.map(function(req){
+    var entries = sortLogsAsc(db.auditLog.filter(function(l){ return l.meta && l.meta.requestId === req.id; }));
+    var items = entries.map(function(l){
+      return '<div class="mtl-item"><div class="mtl-time">' + fmt(l.at) + '</div><div><span class="mtl-who">' + esc(l.userName) + "</span> (" + esc(l.role) + ") — " + esc(ACTION_LABELS[l.action] || l.action) + "</div></div>";
+    }).join("");
+    return '<div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">' +
+      '<div class="card-head" style="margin-bottom:6px;"><div><b>' + esc(req.mawb) + (req.hawb ? " / " + esc(req.hawb) : "") + "</b> · Request ID " + esc(req.id) + "</div>" + statusBadge(req.status) + "</div>" +
+      '<div class="mtl">' + (items || '<div class="empty">ไม่มีเหตุการณ์บันทึกไว้</div>') + "</div>" +
+    "</div>";
+  }).join("");
+}
+
 /* ---------------------- render: request detail (timeline) ---------------------- */
 function renderRequestDetail(reqId){
   var req = db.requests.filter(function(r){ return r.id === reqId; })[0];
   if(!req){ return '<div class="empty">ไม่พบคำขอที่ระบุ</div>'; }
   var shipment = req.shipmentId ? getShipment(req.shipmentId) : null;
   var isTmo = session.user.role === "TMO";
-  var canSeeThis = isTmo || req.requesterId === session.user.id;
+  var canSeeThis = isTmo || session.user.role === "AOT" || req.requesterId === session.user.id;
   if(!canSeeThis){ return '<div class="empty">ไม่มีสิทธิ์ดูคำขอนี้</div>'; }
 
   var html = '<div class="card-head"><div><h2 style="margin:0;">คำขอ DO – ' + esc(req.mawb) + (req.hawb ? " / " + esc(req.hawb) : "") + '</h2><div class="card-desc">Request ID: ' + esc(req.id) + " · ส่งคำขอโดย " + esc(req.requesterName) + " (" + esc(req.requesterCompany || "-") + ")</div></div>" +
@@ -1389,8 +1631,28 @@ function renderRequestDetail(reqId){
     html += tlItem("pending", "6", "Assign DO", "ยังไม่ถึงขั้นตอนนี้");
   }
 
+  // 7. shipping assignment + QR handoff (only relevant once DO is assigned)
+  if(req.status === "DO_ASSIGNED"){
+    if(req.shippingId){
+      html += tlItem("ok", "7", "มอบหมายผู้ขนส่ง (Shipping)",
+        "มอบหมายให้ <b>" + esc(req.shippingName) + "</b> โดย " + esc(req.shippingAssignedBy) + " · " + fmt(req.shippingAssignedAt) +
+        "<div style='margin-top:6px;'>QR Token: <b>" + esc(req.qrToken) + "</b> (ให้ Customs สแกน/กรอกรหัสนี้เพื่อตรวจสอบเอกสาร)</div>");
+    } else if(!isTmo && session.user.role === "FORWARDER" && req.requesterId === session.user.id){
+      html += tlItem("pending", "7", "มอบหมายผู้ขนส่ง (Shipping)", renderAssignShippingForm(req));
+    } else {
+      html += tlItem("pending", "7", "มอบหมายผู้ขนส่ง (Shipping)", "รอ Freight Forwarder มอบหมายผู้ขนส่ง (Shipping)");
+    }
+  }
+
   html += "</div></div>";
   return html;
+}
+
+function renderAssignShippingForm(req){
+  var shippers = db.users.filter(function(u){ return u.role === "SHIPPING"; });
+  var options = shippers.map(function(u){ return '<option value="' + esc(u.id) + '">' + esc(u.name) + " – " + esc(u.company) + "</option>"; }).join("");
+  return '<div class="field" style="margin-top:8px;max-width:420px;"><label>เลือกผู้ขนส่ง (Shipping)</label><select id="shippingSelect_' + esc(req.id) + '">' + options + "</select></div>" +
+    '<button class="btn btn-primary btn-sm" onclick="assignShipping(\'' + req.id + '\')">มอบหมายงานขนส่ง</button>';
 }
 
 function tlItem(state, num, title, descHtml){
@@ -1447,18 +1709,21 @@ function renderDecisionPanel(req, isTmo){
 
 /* ---------------------- render: audit log ---------------------- */
 function renderAuditLog(){
-  var isTmo = session.user.role === "TMO";
+  var role = session.user.role;
+  var privileged = role === "TMO" || role === "AOT";
   var myReqIds = db.requests.filter(function(r){ return r.requesterId === session.user.id; }).map(function(r){ return r.id; });
+  var myShippingReqIds = db.requests.filter(function(r){ return r.shippingId === session.user.id; }).map(function(r){ return r.id; });
   var logs = db.auditLog.filter(function(l){
-    if(isTmo){ return true; }
+    if(privileged){ return true; }
     if(l.userId === session.user.id){ return true; }
     if(l.meta && l.meta.requestId && myReqIds.indexOf(l.meta.requestId) !== -1){ return true; }
+    if(l.meta && l.meta.requestId && myShippingReqIds.indexOf(l.meta.requestId) !== -1){ return true; }
     return false;
   });
-  var rows = logs.slice(0,200).map(function(l){
-    return "<tr><td>" + fmt(l.at) + "</td><td>" + esc(l.userName) + " <span class='badge badge-gray'>" + esc(l.role) + "</span></td><td><b>" + esc(l.action) + "</b></td><td style='font-size:11.5px;color:var(--text-dim);'>" + esc(JSON.stringify(l.meta)) + "</td></tr>";
+  var rows = sortLogsDesc(logs).slice(0,200).map(function(l){
+    return "<tr><td>" + fmt(l.at) + "</td><td>" + esc(l.userName) + " <span class='badge badge-gray'>" + esc(l.role) + "</span></td><td><b>" + esc(ACTION_LABELS[l.action] || l.action) + "</b></td><td style='font-size:11.5px;color:var(--text-dim);'>" + esc(JSON.stringify(l.meta)) + "</td></tr>";
   }).join("");
-  return '<div class="card-head"><div><h2 style="margin:0;">Audit Log</h2><div class="card-desc">ประวัติการดำเนินการทั้งหมดในระบบ</div></div></div>' +
+  return '<div class="card-head"><div><h2 style="margin:0;">Audit Log</h2><div class="card-desc">' + (privileged ? "ประวัติการดำเนินการทั้งหมดในระบบ" : "ประวัติการดำเนินการที่เกี่ยวข้องกับคุณ") + '</div></div></div>' +
     '<div class="card">' + (rows ? '<div class="table-wrap"><table class="tbl"><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Detail</th></tr></thead><tbody>' + rows + "</tbody></table></div>" : '<div class="empty">ยังไม่มีข้อมูล</div>') + "</div>";
 }
 
@@ -1518,6 +1783,28 @@ function renderDoModal(reqId){
       '<div class="do-toolbar no-print"><div><b>เอกสาร Delivery Order</b> <span class="badge badge-success">DO_ASSIGNED</span></div>' +
         '<div class="chip-row"><button class="btn btn-outline btn-sm" onclick="printDoDocument()">🖶 พิมพ์ / Save PDF</button><button class="btn btn-outline btn-sm" onclick="closeDoDocument()">ปิด</button></div></div>' +
       '<div class="do-sheet-scroll">' + sheet + "</div>" +
+    "</div>" +
+  "</div>";
+}
+
+/* ---------------------- render: QR handoff modal ---------------------- */
+function renderQrModal(reqId){
+  var req = db.requests.filter(function(r){ return r.id === reqId; })[0];
+  if(!req || !req.qrToken){ return ""; }
+  var shipment = getShipment(req.shipmentId);
+  return '' +
+  '<div class="modal-overlay no-print" onclick="if(event.target===this)closeQrModal()">' +
+    '<div class="modal-box" style="max-width:400px;">' +
+      '<div class="do-toolbar"><div><b>QR Code สำหรับ Customs</b></div><button class="btn btn-outline btn-sm" onclick="closeQrModal()">ปิด</button></div>' +
+      '<div style="padding:22px;">' +
+        renderQrGrid(req.qrToken) +
+        '<div class="qr-token">' + esc(req.qrToken) + "</div>" +
+        '<div style="text-align:center;margin-top:10px;">' +
+          '<div style="font-weight:700;">' + esc(req.mawb) + (req.hawb ? " / " + esc(req.hawb) : "") + "</div>" +
+          '<div style="color:var(--text-dim);font-size:12px;">DO No. ' + esc(req.doRequestNo) + (shipment ? " · " + esc(shipment.consignee) : "") + "</div>" +
+        "</div>" +
+        '<div class="qr-note">QR Code จำลองสำหรับสาธิตระบบ — ในสภาพแวดล้อมนี้เจ้าหน้าที่ Customs ใช้กล้องมือถือส่องหน้าจอนี้ไม่ได้จริง กรุณาให้ Customs กรอกรหัสด้านบน หรือค้นหาด้วยเลข AWB แทน</div>' +
+      "</div>" +
     "</div>" +
   "</div>";
 }
