@@ -1,0 +1,1816 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AOT Cargo Community — DO Request &amp; Assign System</title>
+<style>
+:root{
+  --navy:#0a3d67; --navy-2:#0f5088; --navy-deep:#052443;
+  --gold:#c79a3e; --gold-light:#e6c877;
+  --bg:#eef3f8; --surface:#ffffff; --surface-2:#f6f9fc; --border:#dbe4ee;
+  --text:#152233; --text-dim:#5b6b7a;
+  --success:#1f8a55; --success-bg:#e5f7ee; --success-brd:#b8e6cc;
+  --danger:#c0392b; --danger-bg:#fdecea; --danger-brd:#f3c3bd;
+  --warning:#a8710b; --warning-bg:#fff4e0; --warning-brd:#f0d99a;
+  --info:#1f6fb2; --info-bg:#e8f2fc; --info-brd:#bcdcf7;
+  --radius:14px; --radius-sm:8px;
+  --shadow:0 2px 14px rgba(8,35,64,.08);
+  --shadow-lg:0 12px 40px rgba(8,35,64,.22);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0a1420; --surface:#111e2c; --surface-2:#0e1926; --border:#233246;
+    --text:#e7edf4; --text-dim:#93a4b5;
+    --navy:#1a5c94; --navy-2:#2472b4; --navy-deep:#0a2f52;
+    --success-bg:#0f2a1d; --success-brd:#1f5136;
+    --danger-bg:#2c1512; --danger-brd:#5c2721;
+    --warning-bg:#2b210a; --warning-brd:#5c451a;
+    --info-bg:#0e2438; --info-brd:#1f4a6e;
+    --shadow:0 2px 14px rgba(0,0,0,.35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0a1420; --surface:#111e2c; --surface-2:#0e1926; --border:#233246;
+  --text:#e7edf4; --text-dim:#93a4b5;
+  --navy:#1a5c94; --navy-2:#2472b4; --navy-deep:#0a2f52;
+  --success-bg:#0f2a1d; --success-brd:#1f5136;
+  --danger-bg:#2c1512; --danger-brd:#5c2721;
+  --warning-bg:#2b210a; --warning-brd:#5c451a;
+  --info-bg:#0e2438; --info-brd:#1f4a6e;
+  color-scheme: dark;
+}
+:root[data-theme="light"]{
+  --bg:#eef3f8; --surface:#ffffff; --surface-2:#f6f9fc; --border:#dbe4ee;
+  --text:#152233; --text-dim:#5b6b7a;
+  --navy:#0a3d67; --navy-2:#0f5088; --navy-deep:#052443;
+  --success-bg:#e5f7ee; --success-brd:#b8e6cc;
+  --danger-bg:#fdecea; --danger-brd:#f3c3bd;
+  --warning-bg:#fff4e0; --warning-brd:#f0d99a;
+  --info-bg:#e8f2fc; --info-brd:#bcdcf7;
+  color-scheme: light;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:"Noto Sans Thai","Segoe UI","Leelawadee UI",Tahoma,Arial,sans-serif;
+  font-size:14.5px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+#app{min-height:100vh;}
+a{color:inherit;}
+button{font-family:inherit;font-size:inherit;cursor:pointer;}
+input,textarea,select{font-family:inherit;font-size:inherit;}
+::selection{background:var(--gold-light);color:#1a1a1a;}
+
+/* ---------- layout shell ---------- */
+.topbar{
+  position:sticky; top:0; z-index:50;
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px; padding:10px 20px;
+  background:linear-gradient(135deg,var(--navy-deep),var(--navy) 55%,var(--navy-2));
+  color:#fff; box-shadow:var(--shadow-lg);
+}
+.brand{display:flex;align-items:center;gap:12px;min-width:0;}
+.brand-badge{
+  width:42px;height:42px;border-radius:50%;flex:none;
+  background:radial-gradient(circle at 30% 30%, var(--gold-light), var(--gold) 60%, #8a6a20);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;color:#1a2a1a;letter-spacing:.5px;font-size:14px;
+  box-shadow:0 0 0 3px rgba(255,255,255,.18), 0 2px 8px rgba(0,0,0,.35);
+}
+.brand-text{min-width:0;}
+.brand-title{font-weight:700;font-size:15.5px;white-space:nowrap;}
+.brand-sub{font-size:11.5px;color:#cfe0f0;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.topbar-right{display:flex;align-items:center;gap:10px;flex:none;}
+.theme-toggle{
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;
+  border-radius:20px;padding:6px 12px;font-size:12.5px;
+}
+.theme-toggle:hover{background:rgba(255,255,255,.22);}
+.user-chip{
+  display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.2);padding:6px 12px 6px 6px;border-radius:24px;
+}
+.user-avatar{
+  width:28px;height:28px;border-radius:50%;background:var(--gold);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#1a1a1a;flex:none;
+}
+.user-meta{line-height:1.25;}
+.user-name{font-size:12.5px;font-weight:700;}
+.user-role{font-size:10.5px;color:#d7e6f4;}
+.btn-logout{
+  background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;
+  border-radius:20px;padding:6px 12px;font-size:12.5px;
+}
+.btn-logout:hover{background:rgba(255,255,255,.15);}
+
+.layout{display:flex;align-items:flex-start;min-height:calc(100vh - 62px);}
+.sidebar{
+  width:230px;flex:none;background:var(--surface);border-right:1px solid var(--border);
+  padding:16px 10px;position:sticky;top:62px;height:calc(100vh - 62px);overflow:auto;
+}
+.nav-group-label{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-dim);margin:14px 10px 6px;}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;
+  color:var(--text);text-decoration:none;font-size:13.5px;font-weight:600;margin-bottom:2px;
+  border:1px solid transparent; background:transparent; width:100%; text-align:left;
+}
+.nav-item:hover{background:var(--surface-2);}
+.nav-item.active{background:var(--info-bg);border-color:var(--info-brd);color:var(--navy-2);}
+.nav-dot{width:8px;height:8px;border-radius:50%;background:var(--text-dim);flex:none;}
+.nav-item.active .nav-dot{background:var(--navy-2);}
+.main{flex:1;min-width:0;padding:22px 26px 60px;max-width:1180px;margin:0 auto;width:100%;}
+
+@media (max-width:900px){
+  .layout{flex-direction:column;}
+  .sidebar{position:static;width:100%;height:auto;display:flex;overflow-x:auto;gap:4px;padding:8px;}
+  .nav-group-label{display:none;}
+  .main{padding:16px;}
+}
+
+/* ---------- generic UI ---------- */
+.card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;box-shadow:var(--shadow);margin-bottom:18px;
+}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+.card-title{font-size:16px;font-weight:800;margin:0;}
+.card-desc{color:var(--text-dim);font-size:12.8px;margin-top:2px;}
+.grid{display:grid;gap:14px;}
+.grid-2{grid-template-columns:1fr 1fr;}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+.grid-4{grid-template-columns:repeat(4,1fr);}
+@media (max-width:800px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}}
+
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12.5px;font-weight:700;color:var(--text-dim);margin-bottom:5px;}
+.field input, .field textarea, .field select{
+  width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;
+  background:var(--surface-2);color:var(--text);outline:none;transition:border-color .15s;
+}
+.field input:focus, .field textarea:focus, .field select:focus{border-color:var(--navy-2);}
+.field .hint{font-size:11.5px;color:var(--text-dim);margin-top:4px;}
+
+.btn{
+  display:inline-flex;align-items:center;gap:8px;border-radius:10px;border:1.5px solid transparent;
+  padding:10px 18px;font-weight:700;font-size:13.5px;transition:transform .05s, opacity .15s;
+}
+.btn:active{transform:scale(.98);}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+.btn-primary{background:linear-gradient(135deg,var(--navy),var(--navy-2));color:#fff;box-shadow:0 4px 14px rgba(10,61,103,.3);}
+.btn-primary:hover:not(:disabled){filter:brightness(1.08);}
+.btn-gold{background:linear-gradient(135deg,var(--gold),#a9821f);color:#241c05;}
+.btn-outline{background:transparent;border-color:var(--border);color:var(--text);}
+.btn-outline:hover{background:var(--surface-2);}
+.btn-success{background:var(--success);color:#fff;}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-warning{background:var(--warning);color:#fff;}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:8px;}
+.btn-block{width:100%;justify-content:center;}
+
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:800;letter-spacing:.2px;border:1px solid transparent;white-space:nowrap;}
+.badge-success{background:var(--success-bg);color:var(--success);border-color:var(--success-brd);}
+.badge-danger{background:var(--danger-bg);color:var(--danger);border-color:var(--danger-brd);}
+.badge-warning{background:var(--warning-bg);color:var(--warning);border-color:var(--warning-brd);}
+.badge-info{background:var(--info-bg);color:var(--navy-2);border-color:var(--info-brd);}
+.badge-gray{background:var(--surface-2);color:var(--text-dim);border-color:var(--border);}
+
+.table-wrap{overflow-x:auto;}
+table.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+table.tbl th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-dim);padding:8px 10px;border-bottom:2px solid var(--border);white-space:nowrap;}
+table.tbl td{padding:10px;border-bottom:1px solid var(--border);vertical-align:top;}
+table.tbl tr:hover td{background:var(--surface-2);}
+
+.kpi{display:flex;flex-direction:column;gap:4px;}
+.kpi-num{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;}
+.kpi-label{font-size:12px;color:var(--text-dim);font-weight:600;}
+.kpi-sub{font-size:11px;color:var(--text-dim);}
+
+/* ---------- bar chart (status distribution) ---------- */
+.chart-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.chart-row:last-child{margin-bottom:0;}
+.chart-label{width:150px;flex:none;font-size:12.3px;color:var(--text-dim);font-weight:700;text-align:right;}
+.chart-track{flex:1;background:var(--surface-2);border-radius:9px;height:16px;position:relative;overflow:hidden;}
+.chart-bar{height:100%;min-width:3px;border-radius:0 8px 8px 0;transition:width .25s ease;}
+.chart-value{width:30px;flex:none;font-weight:800;font-size:12.5px;text-align:left;font-variant-numeric:tabular-nums;}
+
+/* ---------- recent activity ---------- */
+.ra-list{display:flex;flex-direction:column;gap:0;}
+.ra-item{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--border);}
+.ra-item:last-child{border-bottom:none;}
+.ra-dot{width:8px;height:8px;border-radius:50%;background:var(--navy-2);flex:none;margin-top:5px;}
+.ra-text{font-size:12.6px;}
+.ra-time{font-size:11px;color:var(--text-dim);}
+
+/* ---------- filter bar ---------- */
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+.filter-bar input[type="text"]{flex:1;min-width:180px;padding:8px 12px;border:1.5px solid var(--border);border-radius:9px;background:var(--surface-2);color:var(--text);}
+.filter-bar select{padding:8px 10px;border:1.5px solid var(--border);border-radius:9px;background:var(--surface-2);color:var(--text);}
+
+/* ---------- QR handoff ---------- */
+.qr-grid{display:grid;grid-template-columns:repeat(21,1fr);width:231px;height:231px;background:#fff;padding:14px;border-radius:8px;margin:0 auto;box-shadow:0 2px 10px rgba(0,0,0,.12);}
+.qr-cell{width:100%;height:100%;background:transparent;}
+.qr-cell.on{background:#141414;}
+.qr-token{font-family:monospace;font-size:20px;font-weight:800;letter-spacing:3px;text-align:center;margin-top:14px;color:var(--text);}
+.qr-note{font-size:11.5px;color:var(--text-dim);text-align:center;margin-top:6px;}
+
+/* ---------- role search cards ---------- */
+.search-card{display:flex;flex-direction:column;gap:10px;}
+.search-row{display:flex;gap:8px;flex-wrap:wrap;}
+.search-row input{flex:1;min-width:180px;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--surface-2);color:var(--text);}
+
+/* ---------- mini timeline (AOT shipment lookup) ---------- */
+.mtl{display:flex;flex-direction:column;gap:0;margin-top:8px;}
+.mtl-item{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12.4px;}
+.mtl-item:last-child{border-bottom:none;}
+.mtl-time{color:var(--text-dim);font-size:11.3px;white-space:nowrap;width:120px;flex:none;}
+.mtl-who{font-weight:700;}
+
+.empty{text-align:center;padding:36px 20px;color:var(--text-dim);}
+.empty-icon{font-size:34px;margin-bottom:8px;}
+
+.toast-wrap{position:fixed;top:76px;right:20px;z-index:200;display:flex;flex-direction:column;gap:8px;}
+.toast{padding:12px 16px;border-radius:10px;font-size:13px;font-weight:700;box-shadow:var(--shadow-lg);min-width:220px;animation:slidein .2s ease;}
+.toast-ok{background:var(--success);color:#fff;}
+.toast-error{background:var(--danger);color:#fff;}
+.toast-info{background:var(--navy);color:#fff;}
+@keyframes slidein{from{transform:translateX(30px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(5,15,25,.65);z-index:150;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:30px 16px;}
+.modal-box{background:var(--surface);border-radius:16px;max-width:900px;width:100%;box-shadow:var(--shadow-lg);}
+
+.divider{height:1px;background:var(--border);margin:16px 0;}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px;}
+
+/* ---------- login ---------- */
+.login-wrap{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(199,154,62,.18), transparent 40%),
+    radial-gradient(circle at 85% 85%, rgba(31,111,178,.25), transparent 45%),
+    linear-gradient(135deg,var(--navy-deep),var(--navy) 60%,var(--navy-2));
+}
+.login-card{
+  width:100%;max-width:960px;background:var(--surface);border-radius:20px;overflow:hidden;
+  box-shadow:var(--shadow-lg);display:grid;grid-template-columns:1.1fr 1fr;
+}
+@media (max-width:760px){.login-card{grid-template-columns:1fr;}}
+.login-hero{
+  background:linear-gradient(160deg,var(--navy-deep),var(--navy) 55%, #10538c);
+  color:#fff;padding:34px 30px;display:flex;flex-direction:column;justify-content:space-between;gap:18px;
+}
+.login-hero-badge{display:flex;align-items:center;gap:12px;}
+.login-hero-title{font-size:21px;font-weight:800;margin:14px 0 4px;line-height:1.35;}
+.login-hero-sub{font-size:13px;color:#cfe0f0;line-height:1.6;}
+.login-hero-points{display:flex;flex-direction:column;gap:10px;margin-top:10px;}
+.login-hero-point{display:flex;gap:10px;align-items:flex-start;font-size:12.6px;color:#e7f1fa;}
+.login-hero-point b{color:var(--gold-light);}
+.login-form{padding:34px 32px;}
+.login-form h2{margin:0 0 4px;font-size:19px;}
+.login-form .sub{color:var(--text-dim);font-size:12.8px;margin-bottom:18px;}
+.demo-accounts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+.demo-acc-btn{
+  border:1.5px dashed var(--border);border-radius:10px;background:var(--surface-2);
+  padding:9px 10px;text-align:left;font-size:11.6px;color:var(--text);
+}
+.demo-acc-btn b{display:block;font-size:12.5px;}
+.demo-acc-btn:hover{border-color:var(--navy-2);}
+.otp-box{display:flex;gap:10px;justify-content:center;margin:14px 0;}
+.login-error{background:var(--danger-bg);border:1px solid var(--danger-brd);color:var(--danger);padding:10px 12px;border-radius:10px;font-size:12.8px;margin-bottom:12px;}
+.login-footnote{font-size:11px;color:var(--text-dim);margin-top:16px;text-align:center;}
+
+/* ---------- timeline ---------- */
+.tl{display:flex;flex-direction:column;}
+.tl-item{display:flex;gap:14px;position:relative;padding-bottom:22px;}
+.tl-item:last-child{padding-bottom:0;}
+.tl-item:not(:last-child)::before{content:"";position:absolute;left:15px;top:32px;bottom:0;width:2px;background:var(--border);}
+.tl-dot{width:32px;height:32px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;z-index:1;}
+.tl-dot.ok{background:var(--success-bg);color:var(--success);border:2px solid var(--success-brd);}
+.tl-dot.bad{background:var(--danger-bg);color:var(--danger);border:2px solid var(--danger-brd);}
+.tl-dot.warn{background:var(--warning-bg);color:var(--warning);border:2px solid var(--warning-brd);}
+.tl-dot.pending{background:var(--surface-2);color:var(--text-dim);border:2px solid var(--border);}
+.tl-body{flex:1;min-width:0;padding-top:4px;}
+.tl-title{font-weight:800;font-size:13.8px;margin-bottom:2px;}
+.tl-desc{font-size:12.6px;color:var(--text-dim);}
+.tl-content{margin-top:10px;}
+
+/* ---------- doc checklist ---------- */
+.doc-row{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:10px 12px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;background:var(--surface-2);flex-wrap:wrap;}
+.doc-info{min-width:200px;}
+.doc-name{font-weight:700;font-size:13px;}
+.doc-meta{font-size:11.3px;color:var(--text-dim);}
+.doc-actions{display:flex;gap:6px;flex-wrap:wrap;}
+
+/* ---------- DO document sheet ---------- */
+.do-modal-outer{max-width:900px;}
+.do-toolbar{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--border);}
+.do-sheet-scroll{padding:22px;background:var(--surface-2);}
+.do-sheet{
+  position:relative;background:#fdfaf3;color:#20201d;border:1px solid #d8cfa8;border-radius:6px;
+  padding:26px 30px 90px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.15);
+  font-size:12.6px;
+}
+.do-watermark{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
+.do-watermark::before{
+  content:"SAMPLE / MOCKUP \2022 AOT DO SYSTEM \2022 NOT A REAL DOCUMENT \A SAMPLE / MOCKUP \2022 AOT DO SYSTEM \2022 NOT A REAL DOCUMENT \A SAMPLE / MOCKUP \2022 AOT DO SYSTEM \2022 NOT A REAL DOCUMENT \A SAMPLE / MOCKUP \2022 AOT DO SYSTEM \2022 NOT A REAL DOCUMENT \A SAMPLE / MOCKUP \2022 AOT DO SYSTEM \2022 NOT A REAL DOCUMENT \A SAMPLE / MOCKUP \2022 AOT DO SYSTEM \2022 NOT A REAL DOCUMENT \A SAMPLE / MOCKUP \2022 AOT DO SYSTEM \2022 NOT A REAL DOCUMENT \A SAMPLE / MOCKUP \2022 AOT DO SYSTEM \2022 NOT A REAL DOCUMENT";
+  white-space:pre; position:absolute; left:-40%; top:-30%; width:180%;
+  transform:rotate(-27deg); font-size:20px; font-weight:800; letter-spacing:1px;
+  color:rgba(150,25,25,.11); line-height:62px; text-align:center;
+}
+.do-header{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:stretch;gap:14px;border-bottom:3px solid #7a1f2b;padding-bottom:12px;margin-bottom:14px;}
+.do-header-left{display:flex;align-items:center;gap:10px;}
+.do-aot-badge{width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#e6c877,#a9821f);display:flex;align-items:center;justify-content:center;font-weight:800;color:#1a1a1a;font-size:13px;flex:none;border:2px solid #7a5b17;}
+.do-org-name{font-weight:800;font-size:13.6px;color:#0a3d67;}
+.do-org-sub{font-size:10.6px;color:#4a5a68;}
+.do-tg-band{background:linear-gradient(120deg,#5e1530,#7a1f2b 55%,#9c3a2a);color:#f6e6c2;padding:8px 16px;border-radius:8px;text-align:right;min-width:210px;}
+.do-tg-title{font-weight:800;font-size:14.5px;letter-spacing:.5px;}
+.do-tg-sub{font-size:10px;color:#f0d9a0;margin-top:2px;}
+.do-title-row{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;}
+.do-title-row h1{font-size:16px;margin:0;letter-spacing:.6px;color:#3a2a10;}
+.do-title-row .do-no{font-weight:800;color:#7a1f2b;font-size:13.5px;}
+.do-grid{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:14px;}
+.do-box{border:1px solid #d8cfa8;border-radius:8px;padding:10px 12px;background:rgba(255,255,255,.55);}
+.do-box h4{margin:0 0 8px;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:#7a1f2b;border-bottom:1px dashed #d8cfa8;padding-bottom:4px;}
+.do-kv{display:flex;justify-content:space-between;gap:10px;padding:2px 0;font-size:12px;}
+.do-kv span:first-child{color:#5a5040;}
+.do-kv span:last-child{font-weight:700;text-align:right;}
+table.do-table{position:relative;z-index:1;width:100%;border-collapse:collapse;margin-bottom:14px;font-size:12px;}
+table.do-table th{background:#efe6c9;border:1px solid #d8cfa8;padding:6px 8px;text-align:left;}
+table.do-table td{border:1px solid #d8cfa8;padding:6px 8px;}
+.do-status-row{position:relative;z-index:1;display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.do-remarks{position:relative;z-index:1;border:1px dashed #c8b98a;border-radius:8px;padding:10px 12px;font-size:11.8px;margin-bottom:18px;color:#4a3f2a;min-height:40px;}
+.do-sign-row{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:10px;}
+.do-sign-box{font-size:11.8px;}
+.do-sign-line{border-top:1px solid #7a6a40;margin-top:34px;padding-top:4px;}
+.do-approved-stamp{
+  position:absolute;right:44px;bottom:118px;width:132px;height:132px;border-radius:50%;
+  border:4px double #b3261e;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:#b3261e;transform:rotate(-13deg);opacity:.9;font-weight:800;text-align:center;
+  mix-blend-mode:multiply;z-index:2;letter-spacing:.5px;
+}
+.do-approved-stamp .a1{font-size:16px;}
+.do-approved-stamp .a2{font-size:8px;margin-top:2px;letter-spacing:.4px;}
+.do-approved-stamp .a3{font-size:7.5px;margin-top:6px;}
+.do-footer{position:relative;z-index:1;border-top:1px dashed #c8b98a;padding-top:10px;font-size:9.6px;color:#6a604a;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.do-barcode{font-family:monospace;letter-spacing:-1px;font-size:22px;color:#2a2a2a;}
+
+@media print{
+  body *{visibility:hidden;}
+  .do-sheet, .do-sheet *{visibility:visible;}
+  .do-sheet{position:absolute;left:0;top:0;box-shadow:none;}
+  .no-print{display:none !important;}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast-wrap" id="toastWrap"></div>
+<script>
+/* =====================================================================
+   AOT Cargo Community — Minimal-Input DO Request & Assign (prototype)
+   Self-contained demo. All data below is mock data for design purposes.
+===================================================================== */
+"use strict";
+
+var LS_KEY = "aot_do_demo_v5";
+
+function hoursAgo(h){ return new Date(Date.now() - h * 3600000).toISOString(); }
+
+function uid(p){ return p + "_" + Math.random().toString(36).slice(2,9); }
+function nowIso(){ return new Date().toISOString(); }
+function fmt(iso){
+  if(!iso) return "-";
+  var d = new Date(iso);
+  return d.toLocaleString("th-TH",{ year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit"});
+}
+function esc(s){
+  if(s===undefined || s===null) return "";
+  return String(s).replace(/[&<>"']/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];
+  });
+}
+
+/* ---------------------- seed / mock database ---------------------- */
+function seedDB(){
+  return {
+    doCounter: 1003,
+    users: [
+      {id:"tmo1", username:"tmo.somchai", password:"aot2026", role:"TMO", name:"สมชาย ใจดี", position:"เจ้าหน้าที่คลังสินค้า / ผู้อนุมัติ DO", staffId:"TMO-00231"},
+      {id:"tmo2", username:"tmo.suda", password:"aot2026", role:"TMO", name:"สุดา วงศ์ทอง", position:"เจ้าหน้าที่คลังสินค้า / ผู้อนุมัติ DO", staffId:"TMO-00415"},
+      {id:"fwd1", username:"kerry.agent", password:"kerry2026", role:"FORWARDER", name:"วราภรณ์ พงษ์เจริญ", company:"Kerry Logistics (Thailand) Co., Ltd.", taxId:"0105536090809"},
+      {id:"fwd2", username:"dhl.agent", password:"dhl2026", role:"FORWARDER", name:"Somsak Deelert", company:"DHL Global Forwarding (Thailand) Ltd.", taxId:"0105537083550"},
+      {id:"fwd3", username:"abc.agent", password:"abc2026", role:"FORWARDER", name:"Nattapong Srisuk", company:"ABC Cargo Services Co., Ltd.", taxId:"0105558123456"},
+      {id:"ship1", username:"shipping.somsri", password:"ship2026", role:"SHIPPING", name:"สมศรี ขนส่งดี", company:"ทีมขนส่ง A (Own Fleet)"},
+      {id:"ship2", username:"shipping.anan", password:"ship2026", role:"SHIPPING", name:"อนันต์ รุ่งเรือง", company:"ทีมขนส่ง B (Contract Truck)"},
+      {id:"cus1", username:"customs.pichai", password:"cus2026", role:"CUSTOMS", name:"พิชัย ตรวจเข้ม", position:"เจ้าหน้าที่ศุลกากร ด่านสนามบิน"},
+      {id:"aot1", username:"aot.admin", password:"aot2026", role:"AOT", name:"ผู้บริหาร AOT", position:"AOT Cargo Community – Oversight"}
+    ],
+    delegations: [
+      {consigneeTaxId:"0105512340000", consignee:"Siam Union Trading Co., Ltd.", delegateTaxId:"0105536090809", delegate:"Kerry Logistics (Thailand) Co., Ltd."},
+      {consigneeTaxId:"0105599998888", consignee:"XYZ Trading Co., Ltd.", delegateTaxId:"0105558123456", delegate:"ABC Cargo Services Co., Ltd."}
+    ],
+    shipments: [
+      {id:"s1", mawb:"217-12345678", hawb:null, type:"Master (Direct)",
+        consignee:"Kerry Logistics (Thailand) Co., Ltd.", consigneeTaxId:"0105536090809",
+        flight:"TG920", flightDate:"2026-07-03", origin:"NRT", destination:"BKK",
+        pieces:12, weight:"480 KG", goods:"Electronic Parts (Consumer Electronics)",
+        customsStatus:"CLEARED", cargoStatus:"AVAILABLE", storage:"AOT Cargo Terminal - Zone A/07", doStatus:null},
+      {id:"s2", mawb:"217-88990011", hawb:"THB-556677", type:"House (Consolidation)",
+        consignee:"Global Consol Logistics Co., Ltd.", consigneeTaxId:"0105599991111",
+        houseConsignee:"DHL Global Forwarding (Thailand) Ltd.", houseConsigneeTaxId:"0105537083550",
+        flight:"TG634", flightDate:"2026-07-04", origin:"HKG", destination:"BKK",
+        pieces:34, weight:"1,120 KG", goods:"Garment & Textile (Consol Cargo)",
+        customsStatus:"CLEARED", cargoStatus:"AVAILABLE", storage:"AOT Cargo Terminal - Zone B/12", doStatus:null},
+      {id:"s3", mawb:"217-45671234", hawb:null, type:"Master (Direct)",
+        consignee:"Siam Union Trading Co., Ltd.", consigneeTaxId:"0105512340000",
+        flight:"TG402", flightDate:"2026-07-04", origin:"FRA", destination:"BKK",
+        pieces:8, weight:"210 KG", goods:"Machine Spare Parts",
+        customsStatus:"CLEARED", cargoStatus:"AVAILABLE", storage:"AOT Cargo Terminal - Zone C/03", doStatus:null},
+      {id:"s4", mawb:"217-99887766", hawb:null, type:"Master (Direct)",
+        consignee:"XYZ Trading Co., Ltd.", consigneeTaxId:"0105599998888",
+        flight:"TG108", flightDate:"2026-07-02", origin:"ICN", destination:"BKK",
+        pieces:5, weight:"96 KG", goods:"Cosmetics & Personal Care",
+        customsStatus:"HELD", cargoStatus:"NOT_READY", storage:"AOT Cargo Terminal - Zone A/02", doStatus:null},
+      {id:"s5a", mawb:"217-77778888", hawb:"THB-100100", type:"House (Consolidation)",
+        consignee:"Global Consol Logistics Co., Ltd.", consigneeTaxId:"0105599991111",
+        houseConsignee:"Global Freight Partners Co., Ltd.", houseConsigneeTaxId:"0105566667777",
+        flight:"TG970", flightDate:"2026-07-05", origin:"SIN", destination:"BKK",
+        pieces:20, weight:"640 KG", goods:"Machinery Parts (Consol)",
+        customsStatus:"CLEARED", cargoStatus:"AVAILABLE", storage:"AOT Cargo Terminal - Zone B/05", doStatus:null},
+      {id:"s5b", mawb:"217-77778888", hawb:"THB-100200", type:"House (Consolidation)",
+        consignee:"Global Consol Logistics Co., Ltd.", consigneeTaxId:"0105599991111",
+        houseConsignee:"Kerry Logistics (Thailand) Co., Ltd.", houseConsigneeTaxId:"0105536090809",
+        flight:"TG970", flightDate:"2026-07-05", origin:"SIN", destination:"BKK",
+        pieces:14, weight:"410 KG", goods:"Auto Parts (Consol)",
+        customsStatus:"CLEARED", cargoStatus:"AVAILABLE", storage:"AOT Cargo Terminal - Zone B/05", doStatus:null},
+      {id:"s6", mawb:"217-30011220", hawb:null, type:"Master (Direct)",
+        consignee:"Kerry Logistics (Thailand) Co., Ltd.", consigneeTaxId:"0105536090809",
+        flight:"TG888", flightDate:"2026-07-01", origin:"KIX", destination:"BKK",
+        pieces:6, weight:"150 KG", goods:"Auto Spare Parts", customsStatus:"CLEARED", cargoStatus:"AVAILABLE",
+        storage:"AOT Cargo Terminal - Zone A/09", doStatus:"ASSIGNED"},
+      {id:"s7", mawb:"217-30022330", hawb:null, type:"Master (Direct)",
+        consignee:"Kerry Logistics (Thailand) Co., Ltd.", consigneeTaxId:"0105536090809",
+        flight:"TG512", flightDate:"2026-07-04", origin:"CDG", destination:"BKK",
+        pieces:9, weight:"260 KG", goods:"Cosmetic Packaging", customsStatus:"CLEARED", cargoStatus:"AVAILABLE",
+        storage:"AOT Cargo Terminal - Zone A/10", doStatus:null},
+      {id:"s8", mawb:"217-30033440", hawb:"THB-771122", type:"House (Consolidation)",
+        consignee:"Global Consol Logistics Co., Ltd.", consigneeTaxId:"0105599991111",
+        houseConsignee:"DHL Global Forwarding (Thailand) Ltd.", houseConsigneeTaxId:"0105537083550",
+        flight:"TG205", flightDate:"2026-07-03", origin:"HKG", destination:"BKK",
+        pieces:22, weight:"600 KG", goods:"Consumer Goods (Consol)", customsStatus:"CLEARED", cargoStatus:"AVAILABLE",
+        storage:"AOT Cargo Terminal - Zone B/14", doStatus:null},
+      {id:"s9", mawb:"217-30044550", hawb:"THB-771133", type:"House (Consolidation)",
+        consignee:"Global Consol Logistics Co., Ltd.", consigneeTaxId:"0105599991111",
+        houseConsignee:"DHL Global Forwarding (Thailand) Ltd.", houseConsigneeTaxId:"0105537083550",
+        flight:"TG205", flightDate:"2026-06-28", origin:"HKG", destination:"BKK",
+        pieces:40, weight:"1,300 KG", goods:"Electronics (Consol)", customsStatus:"CLEARED", cargoStatus:"AVAILABLE",
+        storage:"AOT Cargo Terminal - Zone B/15", doStatus:"ASSIGNED"},
+      {id:"s10", mawb:"217-30055660", hawb:null, type:"Master (Direct)",
+        consignee:"Kerry Logistics (Thailand) Co., Ltd.", consigneeTaxId:"0105536090809",
+        flight:"TG150", flightDate:"2026-07-03", origin:"SIN", destination:"BKK",
+        pieces:3, weight:"75 KG", goods:"Documents / Samples", customsStatus:"CLEARED", cargoStatus:"AVAILABLE",
+        storage:"AOT Cargo Terminal - Zone A/11", doStatus:null},
+      {id:"s11", mawb:"217-30066770", hawb:null, type:"Master (Direct)",
+        consignee:"XYZ Trading Co., Ltd.", consigneeTaxId:"0105599998888",
+        flight:"TG777", flightDate:"2026-07-03", origin:"ICN", destination:"BKK",
+        pieces:7, weight:"190 KG", goods:"Textiles", customsStatus:"CLEARED", cargoStatus:"AVAILABLE",
+        storage:"AOT Cargo Terminal - Zone A/12", doStatus:null},
+      {id:"s12", mawb:"217-30077880", hawb:null, type:"Master (Direct)",
+        consignee:"Kerry Logistics (Thailand) Co., Ltd.", consigneeTaxId:"0105536090809",
+        flight:"TG920", flightDate:"2026-07-04", origin:"NRT", destination:"BKK",
+        pieces:15, weight:"410 KG", goods:"Machinery Accessories", customsStatus:"CLEARED", cargoStatus:"AVAILABLE",
+        storage:"AOT Cargo Terminal - Zone A/13", doStatus:"ASSIGNED"}
+    ],
+    requests: [
+      { id:"req_seed_s9", requesterId:"fwd2", requesterName:"Somsak Deelert", requesterCompany:"DHL Global Forwarding (Thailand) Ltd.", requesterTaxId:"0105537083550",
+        mawb:"217-30044550", hawb:"THB-771133", shipmentId:"s9", entitlement:"PASS_HOUSE", status:"DO_ASSIGNED",
+        documentStatus:"ATTACHED_COMPLETE",
+        docChecklist:[
+          {type:"เอกสารแนบเครื่อง (Flight Document)", required:true, state:"attached", scannedBy:"สุดา วงศ์ทอง", scannedAt:hoursAgo(148)},
+          {type:"MAWB Copy", required:false, state:"attached", scannedBy:"สุดา วงศ์ทอง", scannedAt:hoursAgo(148)},
+          {type:"HAWB Copy", required:true, state:"attached", scannedBy:"สุดา วงศ์ทอง", scannedAt:hoursAgo(147)},
+          {type:"Cargo Manifest / Breakdown Sheet", required:false, state:"attached", scannedBy:"สุดา วงศ์ทอง", scannedAt:hoursAgo(147)},
+          {type:"Warehouse Receiving Record", required:false, state:"missing", scannedBy:null, scannedAt:null}
+        ],
+        finalDecision:"APPROVED", decisionReason:"ผ่านเงื่อนไขครบถ้วน (Shipment / Identity / Entitlement / Document / Status)",
+        decisionBy:"สุดา วงศ์ทอง", decisionAt:hoursAgo(146), doRequestNo:"AOT-DO-2026-001001",
+        assignedTo:"DHL Global Forwarding (Thailand) Ltd.", assignedAt:hoursAgo(146),
+        shippingId:"ship2", shippingName:"อนันต์ รุ่งเรือง", shippingAssignedBy:"Somsak Deelert", shippingAssignedAt:hoursAgo(140), qrToken:"AOT9M2XQ1",
+        createdAt:hoursAgo(150), updatedAt:hoursAgo(139) },
+      { id:"req_seed_s6", requesterId:"fwd1", requesterName:"วราภรณ์ พงษ์เจริญ", requesterCompany:"Kerry Logistics (Thailand) Co., Ltd.", requesterTaxId:"0105536090809",
+        mawb:"217-30011220", hawb:null, shipmentId:"s6", entitlement:"PASS_MASTER", status:"DO_ASSIGNED",
+        documentStatus:"ATTACHED_COMPLETE",
+        docChecklist:[
+          {type:"เอกสารแนบเครื่อง (Flight Document)", required:true, state:"attached", scannedBy:"สมชาย ใจดี", scannedAt:hoursAgo(70)},
+          {type:"MAWB Copy", required:false, state:"attached", scannedBy:"สมชาย ใจดี", scannedAt:hoursAgo(70)},
+          {type:"Cargo Manifest / Breakdown Sheet", required:false, state:"missing", scannedBy:null, scannedAt:null},
+          {type:"Warehouse Receiving Record", required:false, state:"missing", scannedBy:null, scannedAt:null}
+        ],
+        finalDecision:"APPROVED", decisionReason:"ผ่านเงื่อนไขครบถ้วน (Shipment / Identity / Entitlement / Document / Status)",
+        decisionBy:"สมชาย ใจดี", decisionAt:hoursAgo(68), doRequestNo:"AOT-DO-2026-001002",
+        assignedTo:"Kerry Logistics (Thailand) Co., Ltd.", assignedAt:hoursAgo(68),
+        shippingId:"ship1", shippingName:"สมศรี ขนส่งดี", shippingAssignedBy:"วราภรณ์ พงษ์เจริญ", shippingAssignedAt:hoursAgo(60), qrToken:"AOT7F3K29",
+        createdAt:hoursAgo(72), updatedAt:hoursAgo(50) },
+      { id:"req_seed_s10", requesterId:"fwd3", requesterName:"Nattapong Srisuk", requesterCompany:"ABC Cargo Services Co., Ltd.", requesterTaxId:"0105558123456",
+        mawb:"217-30055660", hawb:null, shipmentId:"s10", entitlement:"FAIL", status:"ENTITLEMENT_FAILED",
+        documentStatus:null, docChecklist:[],
+        finalDecision:"REJECTED", decisionReason:"บัญชีผู้ใช้งานไม่ใช่ Consignee ตาม MAWB/HAWB และไม่มี Delegation ที่ถูกต้อง",
+        decisionBy:"SYSTEM", decisionAt:hoursAgo(26),
+        assignedTo:null, createdAt:hoursAgo(26), updatedAt:hoursAgo(26) },
+      { id:"req_seed_s8", requesterId:"fwd2", requesterName:"Somsak Deelert", requesterCompany:"DHL Global Forwarding (Thailand) Ltd.", requesterTaxId:"0105537083550",
+        mawb:"217-30033440", hawb:"THB-771122", shipmentId:"s8", entitlement:"PASS_HOUSE", status:"MANUAL_REVIEW",
+        documentStatus:"UNREADABLE",
+        docChecklist:[
+          {type:"เอกสารแนบเครื่อง (Flight Document)", required:true, state:"unreadable", scannedBy:"สมชาย ใจดี", scannedAt:hoursAgo(4)},
+          {type:"MAWB Copy", required:false, state:"missing", scannedBy:null, scannedAt:null},
+          {type:"HAWB Copy", required:true, state:"missing", scannedBy:null, scannedAt:null},
+          {type:"Cargo Manifest / Breakdown Sheet", required:false, state:"missing", scannedBy:null, scannedAt:null},
+          {type:"Warehouse Receiving Record", required:false, state:"missing", scannedBy:null, scannedAt:null}
+        ],
+        finalDecision:null, decisionReason:null, decisionBy:null, decisionAt:null,
+        assignedTo:null, createdAt:hoursAgo(30), updatedAt:hoursAgo(4) },
+      { id:"req_seed_s11", requesterId:"fwd3", requesterName:"Nattapong Srisuk", requesterCompany:"ABC Cargo Services Co., Ltd.", requesterTaxId:"0105558123456",
+        mawb:"217-30066770", hawb:null, shipmentId:"s11", entitlement:"PASS_DELEGATED", status:"READY_FOR_APPROVAL",
+        documentStatus:"ATTACHED_COMPLETE",
+        docChecklist:[
+          {type:"เอกสารแนบเครื่อง (Flight Document)", required:true, state:"attached", scannedBy:"สุดา วงศ์ทอง", scannedAt:hoursAgo(15)},
+          {type:"MAWB Copy", required:false, state:"attached", scannedBy:"สุดา วงศ์ทอง", scannedAt:hoursAgo(15)},
+          {type:"Cargo Manifest / Breakdown Sheet", required:false, state:"missing", scannedBy:null, scannedAt:null},
+          {type:"Warehouse Receiving Record", required:false, state:"missing", scannedBy:null, scannedAt:null}
+        ],
+        finalDecision:null, decisionReason:null, decisionBy:null, decisionAt:null,
+        assignedTo:null, createdAt:hoursAgo(20), updatedAt:hoursAgo(15) },
+      { id:"req_seed_s12", requesterId:"fwd1", requesterName:"วราภรณ์ พงษ์เจริญ", requesterCompany:"Kerry Logistics (Thailand) Co., Ltd.", requesterTaxId:"0105536090809",
+        mawb:"217-30077880", hawb:null, shipmentId:"s12", entitlement:"PASS_MASTER", status:"DO_ASSIGNED",
+        documentStatus:"ATTACHED_COMPLETE",
+        docChecklist:[
+          {type:"เอกสารแนบเครื่อง (Flight Document)", required:true, state:"attached", scannedBy:"สมชาย ใจดี", scannedAt:hoursAgo(9.5)},
+          {type:"MAWB Copy", required:false, state:"attached", scannedBy:"สมชาย ใจดี", scannedAt:hoursAgo(9.5)},
+          {type:"Cargo Manifest / Breakdown Sheet", required:false, state:"missing", scannedBy:null, scannedAt:null},
+          {type:"Warehouse Receiving Record", required:false, state:"missing", scannedBy:null, scannedAt:null}
+        ],
+        finalDecision:"APPROVED", decisionReason:"ผ่านเงื่อนไขครบถ้วน (Shipment / Identity / Entitlement / Document / Status)",
+        decisionBy:"สมชาย ใจดี", decisionAt:hoursAgo(9), doRequestNo:"AOT-DO-2026-001003",
+        assignedTo:"Kerry Logistics (Thailand) Co., Ltd.", assignedAt:hoursAgo(9),
+        createdAt:hoursAgo(10), updatedAt:hoursAgo(9) },
+      { id:"req_seed_s7", requesterId:"fwd1", requesterName:"วราภรณ์ พงษ์เจริญ", requesterCompany:"Kerry Logistics (Thailand) Co., Ltd.", requesterTaxId:"0105536090809",
+        mawb:"217-30022330", hawb:null, shipmentId:"s7", entitlement:"PASS_MASTER", status:"PENDING_DOCUMENT_SCAN",
+        documentStatus:"NOT_ATTACHED",
+        docChecklist:[
+          {type:"เอกสารแนบเครื่อง (Flight Document)", required:true, state:"missing", scannedBy:null, scannedAt:null},
+          {type:"MAWB Copy", required:false, state:"missing", scannedBy:null, scannedAt:null},
+          {type:"Cargo Manifest / Breakdown Sheet", required:false, state:"missing", scannedBy:null, scannedAt:null},
+          {type:"Warehouse Receiving Record", required:false, state:"missing", scannedBy:null, scannedAt:null}
+        ],
+        finalDecision:null, decisionReason:null, decisionBy:null, decisionAt:null,
+        assignedTo:null, createdAt:hoursAgo(5), updatedAt:hoursAgo(5) }
+    ],
+    auditLog: [
+      {id:"log_seed_1", at:hoursAgo(150), userId:"fwd2", userName:"Somsak Deelert", role:"FORWARDER", action:"DO_REQUEST_SUBMITTED", meta:{mawb:"217-30044550", hawb:"THB-771133", requestId:"req_seed_s9"}},
+      {id:"log_seed_2", at:hoursAgo(150), userId:"fwd2", userName:"Somsak Deelert", role:"FORWARDER", action:"SHIPMENT_MATCHED", meta:{requestId:"req_seed_s9", shipmentId:"s9"}},
+      {id:"log_seed_3", at:hoursAgo(150), userId:"fwd2", userName:"Somsak Deelert", role:"FORWARDER", action:"ENTITLEMENT_CHECKED", meta:{requestId:"req_seed_s9", result:"PASS_HOUSE"}},
+      {id:"log_seed_4", at:hoursAgo(147), userId:"tmo2", userName:"สุดา วงศ์ทอง", role:"TMO", action:"DOCUMENT_SCANNED", meta:{requestId:"req_seed_s9", doc:"HAWB Copy", state:"attached"}},
+      {id:"log_seed_5", at:hoursAgo(146), userId:"tmo2", userName:"สุดา วงศ์ทอง", role:"TMO", action:"DECISION_MADE", meta:{requestId:"req_seed_s9", decision:"APPROVE"}},
+      {id:"log_seed_6", at:hoursAgo(146), userId:"tmo2", userName:"สุดา วงศ์ทอง", role:"TMO", action:"DO_ASSIGNED", meta:{requestId:"req_seed_s9", doNo:"AOT-DO-2026-001001"}},
+      {id:"log_seed_7", at:hoursAgo(72), userId:"fwd1", userName:"วราภรณ์ พงษ์เจริญ", role:"FORWARDER", action:"DO_REQUEST_SUBMITTED", meta:{mawb:"217-30011220", hawb:"", requestId:"req_seed_s6"}},
+      {id:"log_seed_8", at:hoursAgo(72), userId:"fwd1", userName:"วราภรณ์ พงษ์เจริญ", role:"FORWARDER", action:"ENTITLEMENT_CHECKED", meta:{requestId:"req_seed_s6", result:"PASS_MASTER"}},
+      {id:"log_seed_9", at:hoursAgo(70), userId:"tmo1", userName:"สมชาย ใจดี", role:"TMO", action:"DOCUMENT_SCANNED", meta:{requestId:"req_seed_s6", doc:"เอกสารแนบเครื่อง (Flight Document)", state:"attached"}},
+      {id:"log_seed_10", at:hoursAgo(68), userId:"tmo1", userName:"สมชาย ใจดี", role:"TMO", action:"DO_ASSIGNED", meta:{requestId:"req_seed_s6", doNo:"AOT-DO-2026-001002"}},
+      {id:"log_seed_11", at:hoursAgo(30), userId:"fwd2", userName:"Somsak Deelert", role:"FORWARDER", action:"DO_REQUEST_SUBMITTED", meta:{mawb:"217-30033440", hawb:"THB-771122", requestId:"req_seed_s8"}},
+      {id:"log_seed_12", at:hoursAgo(4), userId:"tmo1", userName:"สมชาย ใจดี", role:"TMO", action:"DOCUMENT_SCANNED", meta:{requestId:"req_seed_s8", doc:"เอกสารแนบเครื่อง (Flight Document)", state:"unreadable"}},
+      {id:"log_seed_13", at:hoursAgo(26), userId:"fwd3", userName:"Nattapong Srisuk", role:"FORWARDER", action:"DO_REQUEST_SUBMITTED", meta:{mawb:"217-30055660", hawb:"", requestId:"req_seed_s10"}},
+      {id:"log_seed_14", at:hoursAgo(26), userId:"fwd3", userName:"Nattapong Srisuk", role:"FORWARDER", action:"ENTITLEMENT_CHECKED", meta:{requestId:"req_seed_s10", result:"FAIL"}},
+      {id:"log_seed_15", at:hoursAgo(20), userId:"fwd3", userName:"Nattapong Srisuk", role:"FORWARDER", action:"DO_REQUEST_SUBMITTED", meta:{mawb:"217-30066770", hawb:"", requestId:"req_seed_s11"}},
+      {id:"log_seed_16", at:hoursAgo(15), userId:"tmo2", userName:"สุดา วงศ์ทอง", role:"TMO", action:"DOCUMENT_SCANNED", meta:{requestId:"req_seed_s11", doc:"เอกสารแนบเครื่อง (Flight Document)", state:"attached"}},
+      {id:"log_seed_17", at:hoursAgo(10), userId:"fwd1", userName:"วราภรณ์ พงษ์เจริญ", role:"FORWARDER", action:"DO_REQUEST_SUBMITTED", meta:{mawb:"217-30077880", hawb:"", requestId:"req_seed_s12"}},
+      {id:"log_seed_18", at:hoursAgo(9), userId:"tmo1", userName:"สมชาย ใจดี", role:"TMO", action:"DO_ASSIGNED", meta:{requestId:"req_seed_s12", doNo:"AOT-DO-2026-001003"}},
+      {id:"log_seed_19", at:hoursAgo(5), userId:"fwd1", userName:"วราภรณ์ พงษ์เจริญ", role:"FORWARDER", action:"DO_REQUEST_SUBMITTED", meta:{mawb:"217-30022330", hawb:"", requestId:"req_seed_s7"}},
+      {id:"log_seed_20", at:hoursAgo(140), userId:"fwd2", userName:"Somsak Deelert", role:"FORWARDER", action:"SHIPPING_ASSIGNED", meta:{requestId:"req_seed_s9", shippingId:"ship2"}},
+      {id:"log_seed_21", at:hoursAgo(139), userId:"cus1", userName:"พิชัย ตรวจเข้ม", role:"CUSTOMS", action:"CUSTOMS_REVIEWED", meta:{requestId:"req_seed_s9", method:"QR_TOKEN"}},
+      {id:"log_seed_22", at:hoursAgo(60), userId:"fwd1", userName:"วราภรณ์ พงษ์เจริญ", role:"FORWARDER", action:"SHIPPING_ASSIGNED", meta:{requestId:"req_seed_s6", shippingId:"ship1"}},
+      {id:"log_seed_23", at:hoursAgo(50), userId:"cus1", userName:"พิชัย ตรวจเข้ม", role:"CUSTOMS", action:"CUSTOMS_REVIEWED", meta:{requestId:"req_seed_s6", method:"AWB_SEARCH"}}
+    ]
+  };
+}
+function loadDB(){
+  try{
+    var raw = localStorage.getItem(LS_KEY);
+    if(raw){ return JSON.parse(raw); }
+  }catch(e){}
+  var fresh = seedDB();
+  saveDB(fresh);
+  return fresh;
+}
+function saveDB(d){ try{ localStorage.setItem(LS_KEY, JSON.stringify(d)); }catch(e){} }
+
+var db = loadDB();
+var session = { user: null, pendingUser: null, otpMode:false, view:"login", activeRequestId:null, showDoFor:null,
+  fwdFilter:{q:"", bucket:"ALL"}, tmoFilter:{q:"", company:"ALL"}, showQrFor:null, aotTimelineQuery:{mawb:""} };
+var formDraft = { mawb:"", hawb:"" };
+var searchPreview = null;
+
+/* ---------------------- domain logic ---------------------- */
+function getShipment(id){ return db.shipments.filter(function(s){ return s.id===id; })[0] || null; }
+
+function checkEntitlement(user, shipment){
+  if(shipment.hawb && shipment.houseConsigneeTaxId === user.taxId){ return "PASS_HOUSE"; }
+  if(shipment.consigneeTaxId === user.taxId){ return "PASS_MASTER"; }
+  var deleg = db.delegations.filter(function(d){
+    return d.consigneeTaxId === shipment.consigneeTaxId && d.delegateTaxId === user.taxId;
+  })[0];
+  if(deleg){ return "PASS_DELEGATED"; }
+  return "FAIL";
+}
+
+function evaluateSearch(user, mawb, hawb){
+  if(!mawb){ return {kind:"invalid"}; }
+  var matches = db.shipments.filter(function(s){
+    return s.mawb === mawb && (!hawb || s.hawb === hawb);
+  });
+  if(matches.length === 0){ return {kind:"not_found"}; }
+  if(matches.length > 1){ return {kind:"ambiguous", count:matches.length}; }
+  var shipment = matches[0];
+  var existing = db.requests.filter(function(r){
+    return r.shipmentId === shipment.id && r.status !== "REJECTED";
+  })[0];
+  if(existing){ return {kind:"duplicate", existing:existing, shipment:shipment}; }
+  var entitlement = checkEntitlement(user, shipment);
+  return {kind:"ok", shipment:shipment, entitlement:entitlement};
+}
+
+function buildDocChecklist(shipment){
+  var list = [
+    {type:"เอกสารแนบเครื่อง (Flight Document)", required:true, state:"missing", scannedBy:null, scannedAt:null},
+    {type:"MAWB Copy", required:false, state:"missing", scannedBy:null, scannedAt:null}
+  ];
+  if(shipment.hawb){
+    list.push({type:"HAWB Copy", required:true, state:"missing", scannedBy:null, scannedAt:null});
+  }
+  list.push({type:"Cargo Manifest / Breakdown Sheet", required:false, state:"missing", scannedBy:null, scannedAt:null});
+  list.push({type:"Warehouse Receiving Record", required:false, state:"missing", scannedBy:null, scannedAt:null});
+  return list;
+}
+function computeDocStatus(req){
+  var required = req.docChecklist.filter(function(d){ return d.required; });
+  if(required.length === 0){ return req.docChecklist.some(function(d){return d.state==="attached";}) ? "ATTACHED_COMPLETE" : "NOT_ATTACHED"; }
+  if(required.some(function(d){ return d.state === "mismatch"; })){ return "MISMATCH"; }
+  if(required.some(function(d){ return d.state === "unreadable"; })){ return "UNREADABLE"; }
+  if(required.every(function(d){ return d.state === "attached"; })){ return "ATTACHED_COMPLETE"; }
+  if(required.some(function(d){ return d.state === "attached"; })){ return "PARTIAL_ATTACHED"; }
+  return "NOT_ATTACHED";
+}
+function decideSuggestion(req){
+  if(!req.shipmentId){ return "REJECT"; }
+  var shipment = getShipment(req.shipmentId);
+  if(req.entitlement === "FAIL"){ return "REJECT"; }
+  var ds = req.documentStatus;
+  if(ds === "MISMATCH"){ return "REJECT_OR_REVIEW"; }
+  if(ds === "UNREADABLE" || ds === "PARTIAL_ATTACHED"){ return "MANUAL_REVIEW"; }
+  if(ds === "NOT_ATTACHED"){ return "PENDING_DOCUMENT"; }
+  if(shipment.customsStatus !== "CLEARED" || shipment.cargoStatus !== "AVAILABLE"){ return "PENDING_STATUS"; }
+  return "APPROVE_READY";
+}
+function nextDoNumber(){
+  db.doCounter += 1;
+  return "AOT-DO-" + new Date().getFullYear() + "-" + String(db.doCounter).padStart(6,"0");
+}
+function logAudit(user, action, meta){
+  db.auditLog.unshift({ id:uid("log"), at: nowIso(), userId:user.id, userName:user.name, role:user.role, action:action, meta:meta||{} });
+}
+
+function createRequestFromEval(user, mawb, hawb, res){
+  var now = nowIso();
+  var base = {
+    id: uid("req"), requesterId:user.id, requesterName:user.name,
+    requesterCompany:user.company || null, requesterTaxId:user.taxId || null,
+    mawb:mawb, hawb: hawb || null, createdAt:now, updatedAt:now,
+    doRequestNo:null, assignedTo:null, decisionBy:null, decisionAt:null,
+    shippingId:null, shippingName:null, shippingAssignedBy:null, shippingAssignedAt:null, qrToken:null
+  };
+  var req;
+  if(res.kind === "not_found"){
+    req = Object.assign({}, base, {
+      shipmentId:null, entitlement:null, status:"SHIPMENT_NOT_FOUND",
+      documentStatus:null, docChecklist:[], finalDecision:"REJECTED",
+      decisionReason:"ไม่พบ Shipment ที่ตรงกับ MAWB/HAWB ที่ระบุในระบบ",
+      decisionBy:"SYSTEM", decisionAt:now
+    });
+  } else if(res.kind === "ambiguous"){
+    req = Object.assign({}, base, {
+      shipmentId:null, entitlement:null, status:"MANUAL_REVIEW",
+      documentStatus:null, docChecklist:[], finalDecision:null,
+      decisionReason:"พบ Shipment มากกว่า 1 รายการภายใต้ MAWB นี้ กรุณาระบุ HAWB ให้ชัดเจน หรือรอเจ้าหน้าที่ตรวจสอบ"
+    });
+  } else if(res.kind === "ok" && res.entitlement === "FAIL"){
+    req = Object.assign({}, base, {
+      shipmentId:res.shipment.id, entitlement:"FAIL", status:"ENTITLEMENT_FAILED",
+      documentStatus:null, docChecklist:[], finalDecision:"REJECTED",
+      decisionReason:"บัญชีผู้ใช้งานไม่ใช่ Consignee ตาม MAWB/HAWB และไม่มี Delegation ที่ถูกต้อง",
+      decisionBy:"SYSTEM", decisionAt:now
+    });
+  } else {
+    req = Object.assign({}, base, {
+      shipmentId:res.shipment.id, entitlement:res.entitlement, status:"PENDING_DOCUMENT_SCAN",
+      documentStatus:"NOT_ATTACHED", docChecklist:buildDocChecklist(res.shipment),
+      finalDecision:null, decisionReason:null
+    });
+  }
+  db.requests.unshift(req);
+  logAudit(user, "DO_REQUEST_SUBMITTED", {mawb:mawb, hawb:hawb, requestId:req.id});
+  if(req.shipmentId){ logAudit(user, "SHIPMENT_MATCHED", {requestId:req.id, shipmentId:req.shipmentId}); }
+  if(req.entitlement){ logAudit(user, "ENTITLEMENT_CHECKED", {requestId:req.id, result:req.entitlement}); }
+  saveDB(db);
+  return req.id;
+}
+
+/* ---------------------- actions ---------------------- */
+var toastTimer = null;
+function showToast(msg, kind){
+  var wrap = document.getElementById("toastWrap");
+  var el = document.createElement("div");
+  el.className = "toast toast-" + (kind || "info");
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 3200);
+}
+
+function defaultViewForRole(role){
+  var map = { TMO:"tmo-dashboard", FORWARDER:"fwd-dashboard", SHIPPING:"shipping-dashboard", CUSTOMS:"customs-dashboard", AOT:"aot-dashboard" };
+  return map[role] || "fwd-dashboard";
+}
+function doLoginSubmit(){
+  var u = document.getElementById("inUser").value.trim();
+  var p = document.getElementById("inPass").value;
+  var match = db.users.filter(function(x){ return x.username === u && x.password === p; })[0];
+  var errEl = document.getElementById("loginErr");
+  if(!match){
+    if(errEl){ errEl.style.display="block"; errEl.textContent = "ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง"; }
+    return;
+  }
+  session.pendingUser = match;
+  session.otpMode = true;
+  render();
+}
+function fillDemoAccount(username, password){
+  document.getElementById("inUser").value = username;
+  document.getElementById("inPass").value = password;
+}
+function doOtpVerify(){
+  var code = document.getElementById("inOtp").value.trim();
+  var errEl = document.getElementById("otpErr");
+  if(code !== "123456"){
+    if(errEl){ errEl.style.display="block"; }
+    return;
+  }
+  session.user = session.pendingUser;
+  session.pendingUser = null;
+  session.otpMode = false;
+  session.view = defaultViewForRole(session.user.role);
+  logAudit(session.user, "LOGIN", {});
+  saveDB(db);
+  render();
+}
+function backToLogin(){
+  session.pendingUser = null;
+  session.otpMode = false;
+  render();
+}
+function doLogout(){
+  if(session.user){ logAudit(session.user, "LOGOUT", {}); saveDB(db); }
+  session.user = null;
+  session.view = "login";
+  session.activeRequestId = null;
+  render();
+}
+function goto(view){
+  session.view = view;
+  session.activeRequestId = null;
+  searchPreview = null;
+  formDraft = {mawb:"", hawb:""};
+  render();
+}
+function openRequest(id){
+  session.activeRequestId = id;
+  session.view = "request-detail";
+  render();
+}
+
+function applyFwdFilter(){
+  session.fwdFilter.q = document.getElementById("fwdSearchQ").value.trim().toLowerCase();
+  session.fwdFilter.bucket = document.getElementById("fwdBucketFilter").value;
+  render();
+}
+function applyTmoFilter(){
+  session.tmoFilter.q = document.getElementById("tmoSearchQ").value.trim().toLowerCase();
+  session.tmoFilter.company = document.getElementById("tmoCompanyFilter").value;
+  render();
+}
+
+function doSearchPreview(){
+  var mawb = document.getElementById("inMawb").value.trim();
+  var hawb = document.getElementById("inHawb").value.trim();
+  formDraft = {mawb:mawb, hawb:hawb};
+  if(!mawb){ showToast("กรุณากรอกเลข MAWB", "error"); return; }
+  searchPreview = evaluateSearch(session.user, mawb, hawb);
+  render();
+}
+function doSubmitRequest(){
+  var res = evaluateSearch(session.user, formDraft.mawb, formDraft.hawb);
+  if(res.kind === "duplicate"){
+    showToast("มีคำขอ DO อยู่แล้วสำหรับ Shipment นี้", "error");
+    openRequest(res.existing.id);
+    return;
+  }
+  var id = createRequestFromEval(session.user, formDraft.mawb, formDraft.hawb, res);
+  formDraft = {mawb:"", hawb:""};
+  searchPreview = null;
+  showToast("ส่งคำขอ DO เรียบร้อยแล้ว", "ok");
+  openRequest(id);
+}
+function fillDemoShipment(mawb, hawb){
+  document.getElementById("inMawb").value = mawb;
+  document.getElementById("inHawb").value = hawb || "";
+}
+
+function attachDoc(reqId, idx, newState){
+  var req = db.requests.filter(function(r){ return r.id === reqId; })[0];
+  if(!req || session.user.role !== "TMO"){ return; }
+  var doc = req.docChecklist[idx];
+  doc.state = newState;
+  if(newState === "missing"){ doc.scannedBy=null; doc.scannedAt=null; }
+  else { doc.scannedBy = session.user.name; doc.scannedAt = nowIso(); }
+  req.documentStatus = computeDocStatus(req);
+  req.updatedAt = nowIso();
+  if(req.status !== "MANUAL_REVIEW" && req.status !== "REJECTED" && req.status !== "DO_ASSIGNED"){
+    if(req.documentStatus === "ATTACHED_COMPLETE"){ req.status = "READY_FOR_APPROVAL"; }
+    else if(req.documentStatus === "UNREADABLE" || req.documentStatus === "MISMATCH"){ req.status = "MANUAL_REVIEW"; }
+    else { req.status = "PENDING_DOCUMENT_SCAN"; }
+  }
+  logAudit(session.user, "DOCUMENT_SCANNED", {requestId:req.id, doc:doc.type, state:newState});
+  saveDB(db);
+  render();
+}
+function makeDecision(reqId, decision){
+  var req = db.requests.filter(function(r){ return r.id === reqId; })[0];
+  if(!req || session.user.role !== "TMO"){ return; }
+  var reasonEl = document.getElementById("reasonBox");
+  var reason = reasonEl ? reasonEl.value.trim() : "";
+  var now = nowIso();
+  if(decision === "APPROVE"){
+    if(decideSuggestion(req) !== "APPROVE_READY"){
+      showToast("คำขอนี้ยังไม่ผ่านเงื่อนไขครบถ้วนสำหรับการอนุมัติ", "error");
+      return;
+    }
+    req.finalDecision = "APPROVED";
+    req.decisionReason = reason || "ผ่านเงื่อนไขครบถ้วน (Shipment / Identity / Entitlement / Document / Status)";
+    req.decisionBy = session.user.name; req.decisionAt = now;
+    req.doRequestNo = nextDoNumber();
+    req.status = "DO_ASSIGNED";
+    req.assignedTo = req.requesterCompany;
+    req.assignedAt = now;
+    var shipment = getShipment(req.shipmentId);
+    if(shipment){ shipment.doStatus = "ASSIGNED"; }
+    logAudit(session.user, "DECISION_MADE", {requestId:req.id, decision:"APPROVE"});
+    logAudit(session.user, "DO_ASSIGNED", {requestId:req.id, doNo:req.doRequestNo});
+  } else if(decision === "MANUAL_REVIEW"){
+    if(!reason){ showToast("กรุณาระบุเหตุผลก่อนส่งตรวจสอบเพิ่มเติม", "error"); return; }
+    req.status = "MANUAL_REVIEW"; req.finalDecision = null;
+    req.decisionReason = reason; req.decisionBy = session.user.name; req.decisionAt = now;
+    logAudit(session.user, "DECISION_MADE", {requestId:req.id, decision:"MANUAL_REVIEW", reason:reason});
+  } else if(decision === "REJECT"){
+    if(!reason){ showToast("กรุณาระบุเหตุผลก่อนปฏิเสธคำขอ", "error"); return; }
+    req.status = "REJECTED"; req.finalDecision = "REJECTED";
+    req.decisionReason = reason; req.decisionBy = session.user.name; req.decisionAt = now;
+    logAudit(session.user, "DECISION_MADE", {requestId:req.id, decision:"REJECT", reason:reason});
+  }
+  req.updatedAt = now;
+  saveDB(db);
+  render();
+}
+function openDoDocument(reqId){ session.showDoFor = reqId; render(); }
+function closeDoDocument(){ session.showDoFor = null; render(); }
+function printDoDocument(){ window.print(); }
+
+/* ---------------------- Shipping / Customs / AOT actions ---------------------- */
+function assignShipping(reqId){
+  var req = db.requests.filter(function(r){ return r.id === reqId; })[0];
+  if(!req || session.user.role !== "FORWARDER" || req.requesterId !== session.user.id){ return; }
+  var sel = document.getElementById("shippingSelect_" + reqId);
+  var shippingId = sel ? sel.value : "";
+  var shipUser = db.users.filter(function(u){ return u.id === shippingId; })[0];
+  if(!shipUser){ showToast("กรุณาเลือกผู้ขนส่ง", "error"); return; }
+  req.shippingId = shipUser.id;
+  req.shippingName = shipUser.name;
+  req.shippingAssignedBy = session.user.name;
+  req.shippingAssignedAt = nowIso();
+  req.qrToken = genQrToken();
+  req.updatedAt = nowIso();
+  logAudit(session.user, "SHIPPING_ASSIGNED", {requestId:req.id, shippingId:shipUser.id});
+  saveDB(db);
+  showToast("มอบหมายงานขนส่งให้ " + shipUser.name + " เรียบร้อยแล้ว", "ok");
+  render();
+}
+function shippingViewDocument(reqId){
+  logAudit(session.user, "SHIPPING_VIEWED_DOCUMENT", {requestId:reqId});
+  saveDB(db);
+  openDoDocument(reqId);
+}
+function showQrForRequest(reqId){ session.showQrFor = reqId; render(); }
+function closeQrModal(){ session.showQrFor = null; render(); }
+function customsViewDocument(reqId, method){
+  logAudit(session.user, "CUSTOMS_REVIEWED", {requestId:reqId, method:method});
+  saveDB(db);
+  openDoDocument(reqId);
+}
+function customsSearchByAwb(){
+  var val = document.getElementById("customsAwbInput").value.trim();
+  if(!val){ showToast("กรุณากรอกเลข MAWB หรือ HAWB", "error"); return; }
+  var req = db.requests.filter(function(r){ return r.status === "DO_ASSIGNED" && (r.mawb === val || r.hawb === val); })[0];
+  if(!req){ showToast("ไม่พบ DO ที่ Assign แล้วสำหรับเลขนี้", "error"); return; }
+  customsViewDocument(req.id, "AWB_SEARCH");
+}
+function customsSearchByToken(){
+  var val = document.getElementById("customsTokenInput").value.trim().toUpperCase();
+  if(!val){ showToast("กรุณากรอกรหัสจาก QR", "error"); return; }
+  var req = db.requests.filter(function(r){ return r.status === "DO_ASSIGNED" && r.qrToken === val; })[0];
+  if(!req){ showToast("รหัส QR ไม่ถูกต้อง หรือ DO นี้ยังไม่ถูก Assign", "error"); return; }
+  customsViewDocument(req.id, "QR_TOKEN");
+}
+function searchAotTimeline(){
+  session.aotTimelineQuery = { mawb: document.getElementById("aotMawbInput").value.trim() };
+  render();
+}
+
+function toggleTheme(){
+  var root = document.documentElement;
+  var cur = root.getAttribute("data-theme");
+  var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  var effectiveDark = cur ? cur === "dark" : prefersDark;
+  root.setAttribute("data-theme", effectiveDark ? "light" : "dark");
+  render();
+}
+function resetDemo(){
+  if(!confirm("รีเซ็ตข้อมูลตัวอย่างทั้งหมด คำขอ/เอกสารที่สร้างไว้จะหายไปทั้งหมด?")){ return; }
+  try{ localStorage.removeItem(LS_KEY); }catch(e){}
+  db = seedDB();
+  saveDB(db);
+  session = { user:null, pendingUser:null, otpMode:false, view:"login", activeRequestId:null, showDoFor:null,
+    fwdFilter:{q:"", bucket:"ALL"}, tmoFilter:{q:"", company:"ALL"}, showQrFor:null, aotTimelineQuery:{mawb:""} };
+  render();
+}
+
+/* ---------------------- badge / label helpers ---------------------- */
+function entitlementBadge(e){
+  var map = {
+    PASS_MASTER:["badge-success","PASS_MASTER – สิทธิ์ระดับ MAWB"],
+    PASS_HOUSE:["badge-success","PASS_HOUSE – สิทธิ์ระดับ HAWB"],
+    PASS_DELEGATED:["badge-info","PASS_DELEGATED – ได้รับมอบอำนาจ"],
+    FAIL:["badge-danger","FAIL – ไม่มีสิทธิ์"]
+  };
+  var m = map[e] || ["badge-gray", e || "-"];
+  return '<span class="badge ' + m[0] + '">' + m[1] + "</span>";
+}
+function statusBadge(status){
+  var map = {
+    REQUEST_SUBMITTED:["badge-info","REQUEST_SUBMITTED"],
+    SHIPMENT_NOT_FOUND:["badge-danger","SHIPMENT_NOT_FOUND"],
+    ENTITLEMENT_FAILED:["badge-danger","ENTITLEMENT_FAILED"],
+    PENDING_DOCUMENT_SCAN:["badge-warning","PENDING_DOCUMENT_SCAN"],
+    READY_FOR_APPROVAL:["badge-info","READY_FOR_APPROVAL"],
+    MANUAL_REVIEW:["badge-warning","MANUAL_REVIEW"],
+    REJECTED:["badge-danger","REJECTED"],
+    DO_ASSIGNED:["badge-success","DO_ASSIGNED"]
+  };
+  var m = map[status] || ["badge-gray", status];
+  return '<span class="badge ' + m[0] + '">' + m[1] + "</span>";
+}
+function docStatusBadge(ds){
+  var map = {
+    NOT_ATTACHED:["badge-gray","NOT_ATTACHED"],
+    PARTIAL_ATTACHED:["badge-warning","PARTIAL_ATTACHED"],
+    ATTACHED_COMPLETE:["badge-success","ATTACHED_COMPLETE"],
+    UNREADABLE:["badge-warning","UNREADABLE"],
+    MISMATCH:["badge-danger","MISMATCH"]
+  };
+  var m = map[ds] || ["badge-gray", ds || "-"];
+  return '<span class="badge ' + m[0] + '">' + m[1] + "</span>";
+}
+
+/* ---------------------- dashboard analytics helpers ---------------------- */
+function isToday(iso){
+  if(!iso) return false;
+  var d = new Date(iso), n = new Date();
+  return d.getFullYear()===n.getFullYear() && d.getMonth()===n.getMonth() && d.getDate()===n.getDate();
+}
+function ageHours(iso){ return (Date.now() - new Date(iso).getTime()) / 3600000; }
+function fmtHours(h){
+  if(h === null || h === undefined || isNaN(h)) return "-";
+  if(h < 1) return Math.round(h*60) + " นาที";
+  if(h < 48) return h.toFixed(1) + " ชม.";
+  return (h/24).toFixed(1) + " วัน";
+}
+function avgTurnaroundHours(list){
+  var done = list.filter(function(r){ return r.status === "DO_ASSIGNED" && r.assignedAt; });
+  if(!done.length) return null;
+  var total = done.reduce(function(s,r){ return s + ageHours2(r.createdAt, r.assignedAt); }, 0);
+  return total / done.length;
+}
+function ageHours2(fromIso, toIso){ return (new Date(toIso).getTime() - new Date(fromIso).getTime()) / 3600000; }
+function agingBadge(req){
+  var active = ["PENDING_DOCUMENT_SCAN","READY_FOR_APPROVAL","MANUAL_REVIEW"];
+  if(active.indexOf(req.status) === -1){ return ""; }
+  var h = ageHours(req.createdAt);
+  if(h >= 24){ return '<span class="badge badge-danger">ล่าช้า ' + fmtHours(h) + '</span>'; }
+  if(h >= 4){ return '<span class="badge badge-warning">รอมา ' + fmtHours(h) + '</span>'; }
+  return '<span class="badge badge-gray">เพิ่งส่ง ' + fmtHours(h) + '</span>';
+}
+function bucketOf(status){
+  if(status === "DO_ASSIGNED"){ return "ASSIGNED"; }
+  if(status === "MANUAL_REVIEW"){ return "REVIEW"; }
+  if(status === "REJECTED" || status === "SHIPMENT_NOT_FOUND" || status === "ENTITLEMENT_FAILED"){ return "REJECTED"; }
+  return "ACTIVE";
+}
+function bucketCounts(list){
+  var b = {ACTIVE:0, REVIEW:0, ASSIGNED:0, REJECTED:0};
+  list.forEach(function(r){ b[bucketOf(r.status)]++; });
+  return [
+    {key:"ACTIVE", label:"กำลังดำเนินการ", count:b.ACTIVE, color:"var(--info)"},
+    {key:"REVIEW", label:"รอตรวจสอบเพิ่มเติม", count:b.REVIEW, color:"var(--warning)"},
+    {key:"ASSIGNED", label:"Assign DO แล้ว", count:b.ASSIGNED, color:"var(--success)"},
+    {key:"REJECTED", label:"ถูกปฏิเสธ", count:b.REJECTED, color:"var(--danger)"}
+  ];
+}
+function renderBarChart(rows){
+  var max = Math.max.apply(null, rows.map(function(r){ return r.count; }).concat([1]));
+  return '<div class="chart">' + rows.map(function(r){
+    var pct = r.count === 0 ? 0 : Math.max(4, Math.round((r.count/max)*100));
+    return '<div class="chart-row"><div class="chart-label">' + esc(r.label) + '</div>' +
+      '<div class="chart-track"><div class="chart-bar" style="width:' + pct + '%;background:' + r.color + ';"></div></div>' +
+      '<div class="chart-value">' + r.count + "</div></div>";
+  }).join("") + "</div>";
+}
+var ACTION_LABELS = {
+  LOGIN:"เข้าสู่ระบบ", LOGOUT:"ออกจากระบบ",
+  DO_REQUEST_SUBMITTED:"ส่งคำขอ DO ใหม่", SHIPMENT_MATCHED:"ระบบพบ Shipment ที่ตรงกัน",
+  ENTITLEMENT_CHECKED:"ตรวจสอบสิทธิ์ (Entitlement)", DOCUMENT_SCANNED:"สแกน/แนบเอกสาร",
+  DECISION_MADE:"ตัดสินใจคำขอ DO", DO_ASSIGNED:"Assign DO สำเร็จ",
+  SHIPPING_ASSIGNED:"มอบหมายผู้ขนส่ง (Shipping)", SHIPPING_VIEWED_DOCUMENT:"ผู้ขนส่งเปิดดูเอกสาร",
+  CUSTOMS_REVIEWED:"ศุลกากรตรวจสอบเอกสาร"
+};
+function sortLogsDesc(logs){ return logs.slice().sort(function(a,b){ return new Date(b.at) - new Date(a.at); }); }
+function sortLogsAsc(logs){ return logs.slice().sort(function(a,b){ return new Date(a.at) - new Date(b.at); }); }
+function renderRecentActivity(logs, limit){
+  limit = limit || 6;
+  var items = sortLogsDesc(logs).slice(0, limit).map(function(l){
+    return '<div class="ra-item"><div class="ra-dot"></div><div><div class="ra-text"><b>' + esc(l.userName) + "</b> " +
+      esc(ACTION_LABELS[l.action] || l.action) + '</div><div class="ra-time">' + fmt(l.at) + "</div></div></div>";
+  }).join("");
+  return '<div class="ra-list">' + (items || '<div class="empty" style="padding:16px;">ไม่มีกิจกรรมล่าสุด</div>') + "</div>";
+}
+
+/* ---------------------- QR handoff (Shipping -> Customs) ---------------------- */
+function genQrToken(){ return Math.random().toString(36).slice(2,10).toUpperCase(); }
+function strHash(s){
+  var h = 0;
+  for(var i=0; i<s.length; i++){ h = (h * 31 + s.charCodeAt(i)) | 0; }
+  return h >>> 0;
+}
+function mulberry32(seed){
+  return function(){
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function qrFinderOn(x, y, size){
+  var lx = x < 7 ? x : (x - (size - 7));
+  var ly = y < 7 ? y : (y - (size - 7));
+  var border = lx === 0 || lx === 6 || ly === 0 || ly === 6;
+  var inner = lx >= 2 && lx <= 4 && ly >= 2 && ly <= 4;
+  return border || inner;
+}
+function renderQrGrid(token){
+  var size = 21;
+  var rand = mulberry32(strHash(token || "AOT"));
+  var cells = "";
+  for(var y=0; y<size; y++){
+    for(var x=0; x<size; x++){
+      var inFinder = (x<7 && y<7) || (x>=size-7 && y<7) || (x<7 && y>=size-7);
+      var on = inFinder ? qrFinderOn(x, y, size) : (rand() > 0.55);
+      cells += '<div class="qr-cell' + (on ? " on" : "") + '"></div>';
+    }
+  }
+  return '<div class="qr-grid">' + cells + "</div>";
+}
+
+/* ---------------------- render: shell ---------------------- */
+function render(){
+  var app = document.getElementById("app");
+  if(!session.user){
+    app.innerHTML = session.otpMode ? renderOtp() : renderLogin();
+    return;
+  }
+  var body = "";
+  if(session.view === "fwd-dashboard"){ body = renderFwdDashboard(); }
+  else if(session.view === "new-request"){ body = renderNewRequest(); }
+  else if(session.view === "tmo-dashboard"){ body = renderTmoDashboard(); }
+  else if(session.view === "shipping-dashboard"){ body = renderShippingDashboard(); }
+  else if(session.view === "customs-dashboard"){ body = renderCustomsDashboard(); }
+  else if(session.view === "aot-dashboard"){ body = renderAotDashboard(); }
+  else if(session.view === "request-detail"){ body = renderRequestDetail(session.activeRequestId); }
+  else if(session.view === "audit-log"){ body = renderAuditLog(); }
+  else { session.view = defaultViewForRole(session.user.role); render(); return; }
+
+  app.innerHTML = renderTopbar() +
+    '<div class="layout">' + renderSidebar() + '<div class="main">' + body + "</div></div>" +
+    (session.showDoFor ? renderDoModal(session.showDoFor) : "") +
+    (session.showQrFor ? renderQrModal(session.showQrFor) : "");
+}
+
+function renderTopbar(){
+  var initials = session.user.name.trim().slice(0,1);
+  return '' +
+  '<div class="topbar">' +
+    '<div class="brand">' +
+      '<div class="brand-badge">AOT</div>' +
+      '<div class="brand-text">' +
+        '<div class="brand-title">AOT Cargo Community – DO Request &amp; Assign</div>' +
+        '<div class="brand-sub">Airports of Thailand PCL · Minimal-Input DO Workflow (Prototype)</div>' +
+      "</div>" +
+    "</div>" +
+    '<div class="topbar-right">' +
+      '<button class="theme-toggle" onclick="toggleTheme()">☀/☾ Theme</button>' +
+      '<div class="user-chip">' +
+        '<div class="user-avatar">' + esc(initials) + "</div>" +
+        '<div class="user-meta">' +
+          '<div class="user-name">' + esc(session.user.name) + "</div>" +
+          '<div class="user-role">' + esc(session.user.position || session.user.company || "") + "</div>" +
+        "</div>" +
+      "</div>" +
+      '<button class="btn-logout" onclick="doLogout()">ออกจากระบบ</button>' +
+    "</div>" +
+  "</div>";
+}
+function navItem(view, label, activeView){
+  var cls = "nav-item" + (activeView === view ? " active" : "");
+  return '<button class="' + cls + '" onclick="goto(\'' + view + '\')"><span class="nav-dot"></span>' + label + "</button>";
+}
+function renderSidebar(){
+  var v = session.view;
+  var html = '<div class="sidebar">';
+  if(session.user.role === "FORWARDER"){
+    html += '<div class="nav-group-label">Freight Forwarder</div>';
+    html += navItem("fwd-dashboard", "แดชบอร์ดของฉัน", v);
+    html += navItem("new-request", "+ ขอ DO ใหม่", v);
+    html += navItem("audit-log", "ประวัติการดำเนินการ (Audit Log)", v);
+  } else if(session.user.role === "TMO"){
+    html += '<div class="nav-group-label">TMO – AOT Cargo Terminal</div>';
+    html += navItem("tmo-dashboard", "คิวคำขอ DO", v);
+    html += navItem("audit-log", "ประวัติการดำเนินการ (Audit Log)", v);
+    html += '<div class="nav-group-label">System</div>';
+    html += '<button class="nav-item" onclick="resetDemo()"><span class="nav-dot"></span>รีเซ็ตข้อมูลตัวอย่าง</button>';
+  } else if(session.user.role === "SHIPPING"){
+    html += '<div class="nav-group-label">Shipping / ผู้ขนส่ง</div>';
+    html += navItem("shipping-dashboard", "งานขนส่งของฉัน", v);
+    html += navItem("audit-log", "ประวัติการดำเนินการ", v);
+  } else if(session.user.role === "CUSTOMS"){
+    html += '<div class="nav-group-label">Customs – ศุลกากร</div>';
+    html += navItem("customs-dashboard", "ตรวจสอบเอกสาร DO", v);
+    html += navItem("audit-log", "ประวัติการตรวจของฉัน", v);
+  } else {
+    html += '<div class="nav-group-label">AOT – Oversight</div>';
+    html += navItem("aot-dashboard", "ภาพรวมระบบ & Shipment Timeline", v);
+    html += navItem("audit-log", "Audit Log (ทั้งหมด)", v);
+  }
+  html += "</div>";
+  return html;
+}
+
+/* ---------------------- render: login / otp ---------------------- */
+function renderLogin(){
+  return '' +
+  '<div class="login-wrap"><div class="login-card">' +
+    '<div class="login-hero">' +
+      '<div>' +
+        '<div class="login-hero-badge"><div class="brand-badge">AOT</div><div><div style="font-weight:800;font-size:14px;">Airports of Thailand PCL</div><div style="font-size:11.5px;color:#cfe0f0;">AOT Cargo Community System</div></div></div>' +
+        '<div class="login-hero-title">Request / Assign Delivery Order<br>แบบกรอกน้อยที่สุด แต่ยืนยันตัวตนได้จริง</div>' +
+        '<div class="login-hero-sub">Freight / Forwarder กรอกเพียง MAWB/HAWB ระบบดึง Consignee และสถานะจาก Shipment จริง ก่อนเข้าสู่การอนุมัติ DO จะต้องผ่านการสแกนเอกสารโดยคลังสินค้า (TMO)</div>' +
+      "</div>" +
+      '<div class="login-hero-points">' +
+        '<div class="login-hero-point"><b>&#10003;</b> Freight กรอกเฉพาะ MAWB / HAWB – ระบบดึง Consignee อัตโนมัติ</div>' +
+        '<div class="login-hero-point"><b>&#10003;</b> ตรวจสิทธิ์จาก Tax ID / Company ID / Delegation</div>' +
+        '<div class="login-hero-point"><b>&#10003;</b> คลังสินค้า (TMO) Scan และแนบเอกสารก่อน Approve</div>' +
+        '<div class="login-hero-point"><b>&#10003;</b> DO ออกตามแบบมาตรฐาน Air Cargo Delivery Order</div>' +
+      "</div>" +
+    "</div>" +
+    '<div class="login-form">' +
+      "<h2>เข้าสู่ระบบ</h2>" +
+      '<div class="sub">SSO / MFA – กรุณาเลือกบัญชีทดลองด้านล่าง หรือกรอกเอง</div>' +
+      '<div id="loginErr" class="login-error" style="display:none;"></div>' +
+      '<div class="field"><label>Username</label><input id="inUser" type="text" placeholder="username" autocomplete="off"></div>' +
+      '<div class="field"><label>Password</label><input id="inPass" type="password" placeholder="password"></div>' +
+      '<button class="btn btn-primary btn-block" onclick="doLoginSubmit()">เข้าสู่ระบบ</button>' +
+      '<div class="divider"></div>' +
+      '<div class="sub" style="margin-bottom:8px;">บัญชีทดลอง (คลิกเพื่อกรอกอัตโนมัติ)</div>' +
+      '<div class="demo-accounts">' +
+        '<button class="demo-acc-btn" onclick="fillDemoAccount(\'tmo.somchai\',\'aot2026\')"><b>TMO – สมชาย</b>tmo.somchai / aot2026</button>' +
+        '<button class="demo-acc-btn" onclick="fillDemoAccount(\'kerry.agent\',\'kerry2026\')"><b>Forwarder – Kerry</b>kerry.agent / kerry2026</button>' +
+        '<button class="demo-acc-btn" onclick="fillDemoAccount(\'dhl.agent\',\'dhl2026\')"><b>Forwarder – DHL</b>dhl.agent / dhl2026</button>' +
+        '<button class="demo-acc-btn" onclick="fillDemoAccount(\'abc.agent\',\'abc2026\')"><b>Forwarder – ABC</b>abc.agent / abc2026</button>' +
+        '<button class="demo-acc-btn" onclick="fillDemoAccount(\'shipping.somsri\',\'ship2026\')"><b>Shipping – สมศรี</b>shipping.somsri / ship2026</button>' +
+        '<button class="demo-acc-btn" onclick="fillDemoAccount(\'customs.pichai\',\'cus2026\')"><b>Customs – พิชัย</b>customs.pichai / cus2026</button>' +
+        '<button class="demo-acc-btn" onclick="fillDemoAccount(\'aot.admin\',\'aot2026\')"><b>AOT – Oversight</b>aot.admin / aot2026</button>' +
+      "</div>" +
+      '<div class="login-footnote">Prototype สำหรับออกแบบระบบเท่านั้น ข้อมูลทั้งหมดเป็น Mock Data</div>' +
+    "</div>" +
+  "</div></div>";
+}
+function renderOtp(){
+  return '' +
+  '<div class="login-wrap"><div class="login-card" style="grid-template-columns:1fr;max-width:440px;">' +
+    '<div class="login-form">' +
+      "<h2>ยืนยันตัวตน (MFA / OTP)</h2>" +
+      '<div class="sub">ส่งรหัส OTP ไปยัง ' + esc(session.pendingUser.name) + " (" + esc(session.pendingUser.username) + ")</div>" +
+      '<div id="otpErr" class="login-error" style="display:none;">รหัส OTP ไม่ถูกต้อง</div>' +
+      '<div class="field"><label>OTP Code</label><input id="inOtp" type="text" maxlength="6" placeholder="123456"></div>' +
+      '<div class="field hint">รหัส OTP สำหรับทดสอบ: <b>123456</b></div>' +
+      '<button class="btn btn-primary btn-block" onclick="doOtpVerify()">ยืนยัน</button>' +
+      '<button class="btn btn-outline btn-block" style="margin-top:8px;" onclick="backToLogin()">ย้อนกลับ</button>' +
+    "</div>" +
+  "</div></div>";
+}
+
+/* ---------------------- render: forwarder dashboard ---------------------- */
+function renderFwdDashboard(){
+  var mine = db.requests.filter(function(r){ return r.requesterId === session.user.id; });
+  var kAll = mine.length;
+  var kPending = mine.filter(function(r){ return r.status === "PENDING_DOCUMENT_SCAN" || r.status==="READY_FOR_APPROVAL"; }).length;
+  var kReview = mine.filter(function(r){ return r.status === "MANUAL_REVIEW"; }).length;
+  var kAssigned = mine.filter(function(r){ return r.status === "DO_ASSIGNED"; }).length;
+  var avgTurn = avgTurnaroundHours(mine);
+
+  var f = session.fwdFilter;
+  var filtered = mine.filter(function(r){
+    if(f.bucket !== "ALL" && bucketOf(r.status) !== f.bucket){ return false; }
+    if(f.q){
+      var hay = (r.mawb + " " + (r.hawb||"")).toLowerCase();
+      if(hay.indexOf(f.q) === -1){ return false; }
+    }
+    return true;
+  });
+
+  var rows = filtered.map(function(r){
+    var shipment = r.shipmentId ? getShipment(r.shipmentId) : null;
+    return '<tr>' +
+      "<td><b>" + esc(r.mawb) + "</b>" + (r.hawb ? "<br><span style='color:var(--text-dim);font-size:11.5px;'>HAWB " + esc(r.hawb) + "</span>" : "") + "</td>" +
+      "<td>" + (shipment ? esc(shipment.consignee) : "-") + "</td>" +
+      "<td>" + entitlementBadge(r.entitlement) + "</td>" +
+      "<td>" + statusBadge(r.status) + "</td>" +
+      "<td>" + (agingBadge(r) || "<span style='color:var(--text-dim);font-size:11.5px;'>" + fmt(r.updatedAt) + "</span>") + "</td>" +
+      "<td><button class='btn btn-outline btn-sm' onclick=\"openRequest('" + r.id + "')\">ดูรายละเอียด</button></td>" +
+    "</tr>";
+  }).join("");
+
+  var myLogs = db.auditLog.filter(function(l){
+    var myReqIds = mine.map(function(r){ return r.id; });
+    return l.userId === session.user.id || (l.meta && l.meta.requestId && myReqIds.indexOf(l.meta.requestId) !== -1);
+  });
+
+  var html = '' +
+  '<div class="card-head"><div><h2 style="margin:0;">แดชบอร์ดของฉัน</h2><div class="card-desc">' + esc(session.user.company) + " · Tax ID " + esc(session.user.taxId) + "</div></div>" +
+    '<button class="btn btn-primary" onclick="goto(\'new-request\')">+ ขอ DO ใหม่</button></div>' +
+  '<div class="grid grid-4">' +
+    '<div class="card kpi"><div class="kpi-num">' + kAll + '</div><div class="kpi-label">คำขอทั้งหมด</div></div>' +
+    '<div class="card kpi"><div class="kpi-num">' + kPending + '</div><div class="kpi-label">กำลังดำเนินการ</div></div>' +
+    '<div class="card kpi"><div class="kpi-num">' + kReview + '</div><div class="kpi-label">รอตรวจสอบเพิ่มเติม</div></div>' +
+    '<div class="card kpi"><div class="kpi-num">' + kAssigned + '</div><div class="kpi-label">Assign DO แล้ว</div><div class="kpi-sub">เฉลี่ย ' + fmtHours(avgTurn) + " จนถึง Assign</div></div>" +
+  "</div>";
+
+  html += '<div class="grid grid-2">';
+  html += '<div class="card"><div class="card-title" style="margin-bottom:14px;">สัดส่วนคำขอตามสถานะ</div>' + renderBarChart(bucketCounts(mine)) + "</div>";
+  html += '<div class="card"><div class="card-title" style="margin-bottom:6px;">กิจกรรมล่าสุด</div>' + renderRecentActivity(myLogs, 6) + "</div>";
+  html += "</div>";
+
+  html += '<div class="card">' +
+    '<div class="card-head"><div><div class="card-title">รายการคำขอ DO ของฉัน</div></div></div>' +
+    '<div class="filter-bar">' +
+      '<input id="fwdSearchQ" type="text" placeholder="ค้นหา MAWB / HAWB" value="' + esc(f.q) + '" onkeydown="if(event.key===\'Enter\')applyFwdFilter()">' +
+      '<select id="fwdBucketFilter" onchange="applyFwdFilter()">' +
+        '<option value="ALL"' + (f.bucket==="ALL"?" selected":"") + '>ทุกสถานะ</option>' +
+        '<option value="ACTIVE"' + (f.bucket==="ACTIVE"?" selected":"") + '>กำลังดำเนินการ</option>' +
+        '<option value="REVIEW"' + (f.bucket==="REVIEW"?" selected":"") + '>รอตรวจสอบเพิ่มเติม</option>' +
+        '<option value="ASSIGNED"' + (f.bucket==="ASSIGNED"?" selected":"") + '>Assign DO แล้ว</option>' +
+        '<option value="REJECTED"' + (f.bucket==="REJECTED"?" selected":"") + '>ถูกปฏิเสธ</option>' +
+      "</select>" +
+      '<button class="btn btn-outline btn-sm" onclick="applyFwdFilter()">กรอง</button>' +
+    "</div>" +
+    (mine.length === 0 ?
+      '<div class="empty"><div class="empty-icon">📦</div>ยังไม่มีคำขอ DO – กด "+ ขอ DO ใหม่" เพื่อเริ่มต้น</div>' :
+      (filtered.length === 0 ?
+        '<div class="empty">ไม่พบคำขอที่ตรงกับเงื่อนไขการค้นหา</div>' :
+        '<div class="table-wrap"><table class="tbl"><thead><tr><th>MAWB/HAWB</th><th>Consignee</th><th>Entitlement</th><th>Status</th><th>Age / Updated</th><th></th></tr></thead><tbody>' + rows + "</tbody></table></div>"
+      )
+    ) +
+  "</div>";
+  return html;
+}
+
+function renderNewRequest(){
+  var html = '<div class="card-head"><div><h2 style="margin:0;">ขอ DO ใหม่</h2><div class="card-desc">กรอกเฉพาะ MAWB (จำเป็น) และ HAWB (ถ้ามี) ระบบจะดึงข้อมูล Consignee / Flight / Status ให้อัตโนมัติ</div></div></div>';
+
+  html += '<div class="grid grid-2">';
+  html += '<div class="card">' +
+    '<div class="field"><label>MAWB No. <span style="color:var(--danger);">*</span></label><input id="inMawb" type="text" placeholder="เช่น 217-12345678" value="' + esc(formDraft.mawb) + '"></div>' +
+    '<div class="field"><label>HAWB No. (ถ้ามี)</label><input id="inHawb" type="text" placeholder="เช่น THB-556677" value="' + esc(formDraft.hawb) + '"></div>' +
+    '<button class="btn btn-primary btn-block" onclick="doSearchPreview()">ค้นหา Shipment</button>' +
+    '<div class="field hint" style="margin-top:10px;">สิ่งที่ระบบจะตรวจสอบเอง: Consignee, Freight Company/Tax ID, Delegation, Customs/Cargo Status, DO ซ้ำ</div>' +
+  "</div>";
+
+  html += '<div class="card">' +
+    '<div class="card-title" style="font-size:13.5px;margin-bottom:10px;">ตัวอย่างสำหรับทดสอบ (กดเพื่อกรอกอัตโนมัติ)</div>' +
+    '<div class="chip-row" style="flex-direction:column;align-items:stretch;">' +
+      '<button class="demo-acc-btn" onclick="fillDemoShipment(\'217-12345678\',\'\')"><b>217-12345678</b>Master – คาดว่าผ่าน PASS_MASTER ทันที (ลองด้วย Kerry)</button>' +
+      '<button class="demo-acc-btn" onclick="fillDemoShipment(\'217-88990011\',\'THB-556677\')"><b>217-88990011 / THB-556677</b>House – PASS_HOUSE (ลองด้วย DHL)</button>' +
+      '<button class="demo-acc-btn" onclick="fillDemoShipment(\'217-45671234\',\'\')"><b>217-45671234</b>Master – PASS_DELEGATED (ลองด้วย Kerry)</button>' +
+      '<button class="demo-acc-btn" onclick="fillDemoShipment(\'217-99887766\',\'\')"><b>217-99887766</b>Customs HELD – Pending Status (ลองด้วย ABC)</button>' +
+      '<button class="demo-acc-btn" onclick="fillDemoShipment(\'217-77778888\',\'\')"><b>217-77778888</b>ไม่ระบุ HAWB – Ambiguous / Manual Review</button>' +
+      '<button class="demo-acc-btn" onclick="fillDemoShipment(\'217-77778888\',\'THB-100200\')"><b>217-77778888 / THB-100200</b>House – PASS_HOUSE (ลองด้วย Kerry)</button>' +
+      '<button class="demo-acc-btn" onclick="fillDemoShipment(\'217-00000000\',\'\')"><b>217-00000000</b>ไม่มีในระบบ – Not Found / Reject</button>' +
+    "</div>" +
+  "</div>";
+  html += "</div>";
+
+  if(searchPreview){
+    html += renderSearchPreview(searchPreview);
+  }
+  return html;
+}
+
+function renderSearchPreview(res){
+  var html = '<div class="card">';
+  if(res.kind === "not_found"){
+    html += '<div class="badge badge-danger" style="margin-bottom:10px;">SHIPMENT_NOT_FOUND</div>' +
+      '<p>ไม่พบ Shipment ที่ตรงกับ MAWB/HAWB ที่ระบุ – คำขอจะถูกปฏิเสธโดยอัตโนมัติหากส่งคำขอ</p>' +
+      '<button class="btn btn-danger" onclick="doSubmitRequest()">ส่งคำขอ (จะถูกปฏิเสธอัตโนมัติ)</button>';
+  } else if(res.kind === "ambiguous"){
+    html += '<div class="badge badge-warning" style="margin-bottom:10px;">MANUAL_REVIEW – Ambiguous</div>' +
+      "<p>พบ Shipment " + res.count + " รายการภายใต้ MAWB นี้ กรุณาระบุ HAWB ให้ชัดเจน หรือส่งเข้า Manual Review</p>" +
+      '<button class="btn btn-warning" onclick="doSubmitRequest()">ส่งเข้า Manual Review</button>';
+  } else if(res.kind === "duplicate"){
+    html += '<div class="badge badge-warning" style="margin-bottom:10px;">DUPLICATE</div>' +
+      '<p>มีคำขอ DO อยู่แล้วสำหรับ Shipment นี้ – ระบบห้ามออก DO ซ้ำ</p>' +
+      "<button class=\"btn btn-outline\" onclick=\"openRequest('" + res.existing.id + "')\">ดูคำขอที่มีอยู่แล้ว</button>";
+  } else {
+    var s = res.shipment;
+    html += '<div class="card-head"><div class="card-title" style="font-size:14.5px;">ผลการค้นหา Shipment</div><span class="badge badge-success">SHIPMENT_FOUND</span></div>';
+    html += '<div class="grid grid-3">' +
+      "<div class='do-kv'><span>Consignee</span><span>" + esc(s.consignee) + "</span></div>" +
+      "<div class='do-kv'><span>Flight / Date</span><span>" + esc(s.flight) + " · " + esc(s.flightDate) + "</span></div>" +
+      "<div class='do-kv'><span>Route</span><span>" + esc(s.origin) + " → " + esc(s.destination) + "</span></div>" +
+      "<div class='do-kv'><span>Type</span><span>" + esc(s.type) + "</span></div>" +
+      "<div class='do-kv'><span>Pieces / Weight</span><span>" + s.pieces + " PCS / " + esc(s.weight) + "</span></div>" +
+      "<div class='do-kv'><span>Goods</span><span>" + esc(s.goods) + "</span></div>" +
+      "<div class='do-kv'><span>Customs Status</span><span>" + esc(s.customsStatus) + "</span></div>" +
+      "<div class='do-kv'><span>Cargo Status</span><span>" + esc(s.cargoStatus) + "</span></div>" +
+    "</div>";
+    html += '<div class="divider"></div>';
+    html += '<div class="card-head"><div class="card-title" style="font-size:14.5px;">ผลการตรวจสอบสิทธิ์ (Entitlement)</div>' + entitlementBadge(res.entitlement) + "</div>";
+    if(res.entitlement === "FAIL"){
+      html += '<p style="color:var(--danger);">บัญชี ' + esc(session.user.company) + " (Tax ID " + esc(session.user.taxId) + ") ไม่ตรงกับ Consignee ของ Shipment นี้ และไม่มี Delegation ที่ถูกต้อง – คำขอจะถูกปฏิเสธโดยอัตโนมัติ</p>" +
+        '<button class="btn btn-danger" onclick="doSubmitRequest()">ส่งคำขอ (จะถูกปฏิเสธ)</button>';
+    } else {
+      html += '<p style="color:var(--success);">ผ่านการตรวจสิทธิ์เบื้องต้น – ขั้นตอนถัดไปคือรอคลังสินค้า (TMO) Scan และแนบเอกสารก่อนอนุมัติ</p>' +
+        '<button class="btn btn-success" onclick="doSubmitRequest()">ยืนยันส่งคำขอ DO</button>';
+    }
+  }
+  html += "</div>";
+  return html;
+}
+
+/* ---------------------- render: TMO dashboard ---------------------- */
+function renderTmoDashboard(){
+  var everything = db.requests;
+  var f = session.tmoFilter;
+  var all = everything.filter(function(r){
+    if(f.company !== "ALL" && r.requesterCompany !== f.company){ return false; }
+    if(f.q){
+      var hay = (r.mawb + " " + (r.hawb||"") + " " + (r.requesterCompany||"")).toLowerCase();
+      if(hay.indexOf(f.q) === -1){ return false; }
+    }
+    return true;
+  });
+  var qScan = all.filter(function(r){ return r.status === "PENDING_DOCUMENT_SCAN"; });
+  var qReady = all.filter(function(r){ return r.status === "READY_FOR_APPROVAL"; });
+  var qReview = all.filter(function(r){ return r.status === "MANUAL_REVIEW"; });
+  var qDone = all.filter(function(r){ return r.status === "DO_ASSIGNED"; });
+  var approvedToday = everything.filter(function(r){ return r.status === "DO_ASSIGNED" && isToday(r.assignedAt); }).length;
+  var avgApproval = avgTurnaroundHours(everything);
+  var companies = db.users.filter(function(u){ return u.role === "FORWARDER"; });
+
+  function rows(list){
+    return list.map(function(r){
+      var shipment = r.shipmentId ? getShipment(r.shipmentId) : null;
+      return '<tr>' +
+        "<td><b>" + esc(r.mawb) + "</b>" + (r.hawb ? "<br><span style='color:var(--text-dim);font-size:11.5px;'>HAWB " + esc(r.hawb) + "</span>" : "") + "</td>" +
+        "<td>" + esc(r.requesterCompany || "-") + "</td>" +
+        "<td>" + (shipment ? esc(shipment.consignee) : "-") + "</td>" +
+        "<td>" + entitlementBadge(r.entitlement) + "</td>" +
+        "<td>" + (r.documentStatus ? docStatusBadge(r.documentStatus) : "-") + "</td>" +
+        "<td>" + statusBadge(r.status) + "</td>" +
+        "<td>" + (agingBadge(r) || "<span style='color:var(--text-dim);font-size:11.5px;'>-</span>") + "</td>" +
+        "<td><button class='btn btn-primary btn-sm' onclick=\"openRequest('" + r.id + "')\">เปิดคำขอ</button></td>" +
+      "</tr>";
+    }).join("");
+  }
+  function table(list, emptyMsg){
+    if(list.length === 0){ return '<div class="empty">' + emptyMsg + "</div>"; }
+    return '<div class="table-wrap"><table class="tbl"><thead><tr><th>MAWB/HAWB</th><th>Forwarder</th><th>Consignee</th><th>Entitlement</th><th>Document</th><th>Status</th><th>Aging</th><th></th></tr></thead><tbody>' + rows(list) + "</tbody></table></div>";
+  }
+
+  var html = '' +
+  '<div class="card-head"><div><h2 style="margin:0;">คิวคำขอ DO</h2><div class="card-desc">' + esc(session.user.name) + " · " + esc(session.user.position) + "</div></div></div>" +
+  '<div class="grid grid-4">' +
+    '<div class="card kpi"><div class="kpi-num">' + qScan.length + '</div><div class="kpi-label">รอ Scan เอกสาร</div></div>' +
+    '<div class="card kpi"><div class="kpi-num">' + qReview.length + '</div><div class="kpi-label">Manual Review</div></div>' +
+    '<div class="card kpi"><div class="kpi-num">' + approvedToday + '</div><div class="kpi-label">Assign DO วันนี้</div></div>' +
+    '<div class="card kpi"><div class="kpi-num">' + qDone.length + '</div><div class="kpi-label">Assign DO แล้ว (ทั้งหมด)</div><div class="kpi-sub">เฉลี่ย ' + fmtHours(avgApproval) + " ต่อคำขอ</div></div>" +
+  "</div>";
+
+  html += '<div class="grid grid-2">';
+  html += '<div class="card"><div class="card-title" style="margin-bottom:14px;">ภาพรวม Pipeline ทั้งระบบ</div>' + renderBarChart(bucketCounts(everything)) + "</div>";
+  html += '<div class="card"><div class="card-title" style="margin-bottom:6px;">กิจกรรมล่าสุดทั้งระบบ</div>' + renderRecentActivity(db.auditLog, 6) + "</div>";
+  html += "</div>";
+
+  html += '<div class="card"><div class="filter-bar">' +
+    '<input id="tmoSearchQ" type="text" placeholder="ค้นหา MAWB / HAWB / บริษัท Forwarder" value="' + esc(f.q) + '" onkeydown="if(event.key===\'Enter\')applyTmoFilter()">' +
+    '<select id="tmoCompanyFilter" onchange="applyTmoFilter()">' +
+      '<option value="ALL"' + (f.company==="ALL"?" selected":"") + '>ทุกบริษัท Forwarder</option>' +
+      companies.map(function(c){ return '<option value="' + esc(c.company) + '"' + (f.company===c.company?" selected":"") + '>' + esc(c.company) + "</option>"; }).join("") +
+    "</select>" +
+    '<button class="btn btn-outline btn-sm" onclick="applyTmoFilter()">กรอง</button>' +
+  "</div></div>";
+
+  html += '<div class="card"><div class="card-title">รอคลังสินค้า Scan เอกสารแนบเครื่อง</div>' + table(qScan, "ไม่มีคำขอรอ Scan เอกสาร") + "</div>" +
+  '<div class="card"><div class="card-title">รอการอนุมัติ (เอกสารครบ)</div>' + table(qReady, "ไม่มีคำขอรออนุมัติ") + "</div>" +
+  '<div class="card"><div class="card-title">ต้องตรวจสอบเพิ่มเติม (Manual Review)</div>' + table(qReview, "ไม่มีคำขอที่ต้องตรวจสอบเพิ่มเติม") + "</div>" +
+  '<div class="card"><div class="card-title">Assign DO แล้ว (ล่าสุด)</div>' + table(qDone.slice(0,10), "ยังไม่มี DO ที่ Assign") + "</div>";
+  return html;
+}
+
+/* ---------------------- render: Shipping dashboard ---------------------- */
+function renderShippingDashboard(){
+  var mine = db.requests.filter(function(r){ return r.shippingId === session.user.id; });
+  var rows = mine.map(function(r){
+    var shipment = r.shipmentId ? getShipment(r.shipmentId) : null;
+    return '<tr>' +
+      "<td><b>" + esc(r.mawb) + "</b>" + (r.hawb ? "<br><span style='color:var(--text-dim);font-size:11.5px;'>HAWB " + esc(r.hawb) + "</span>" : "") + "</td>" +
+      "<td>" + esc(r.doRequestNo || "-") + "</td>" +
+      "<td>" + (shipment ? esc(shipment.consignee) : "-") + "</td>" +
+      "<td>" + esc(r.requesterCompany || "-") + "</td>" +
+      "<td>" + fmt(r.shippingAssignedAt) + "</td>" +
+      "<td><div class='chip-row'>" +
+        "<button class='btn btn-outline btn-sm' onclick=\"shippingViewDocument('" + r.id + "')\">ดูเอกสาร (View Only)</button>" +
+        "<button class='btn btn-gold btn-sm' onclick=\"showQrForRequest('" + r.id + "')\">แสดง QR Code</button>" +
+      "</div></td>" +
+    "</tr>";
+  }).join("");
+  return '' +
+  '<div class="card-head"><div><h2 style="margin:0;">งานขนส่งของฉัน</h2><div class="card-desc">' + esc(session.user.name) + " · " + esc(session.user.company) + "</div></div></div>" +
+  '<div class="grid grid-4">' +
+    '<div class="card kpi"><div class="kpi-num">' + mine.length + '</div><div class="kpi-label">งานที่ได้รับมอบหมายทั้งหมด</div></div>' +
+  "</div>" +
+  '<div class="card"><div class="card-title">รายการ DO ที่ต้องไปรับสินค้า</div>' +
+    (mine.length === 0 ?
+      '<div class="empty"><div class="empty-icon">🚚</div>ยังไม่มีงานขนส่งที่ได้รับมอบหมาย — รอ Freight Forwarder มอบหมายงานจากหน้ารายละเอียดคำขอ DO</div>' :
+      '<div class="table-wrap"><table class="tbl"><thead><tr><th>MAWB/HAWB</th><th>DO No.</th><th>Consignee</th><th>Forwarder</th><th>มอบหมายเมื่อ</th><th></th></tr></thead><tbody>' + rows + "</tbody></table></div>"
+    ) +
+  "</div>" +
+  '<div class="card"><div class="card-desc">สิทธิ์ของ Shipping: ดูเอกสาร DO ได้แบบอ่านอย่างเดียว (View Document Only) และแสดง QR Code ให้เจ้าหน้าที่ศุลกากร (Customs) สแกน/กรอกรหัสเพื่อตรวจสอบเอกสารชุดเดียวกัน</div></div>';
+}
+
+/* ---------------------- render: Customs dashboard ---------------------- */
+function renderCustomsDashboard(){
+  var myReviews = db.auditLog.filter(function(l){ return l.userId === session.user.id && l.action === "CUSTOMS_REVIEWED"; });
+  var rows = sortLogsDesc(myReviews).slice(0,20).map(function(l){
+    var req = db.requests.filter(function(r){ return r.id === l.meta.requestId; })[0];
+    return "<tr><td>" + fmt(l.at) + "</td><td>" + (req ? esc(req.mawb) : "-") + "</td><td>" + (req ? esc(req.doRequestNo || "-") : "-") + "</td>" +
+      "<td><span class='badge badge-gray'>" + esc(l.meta.method) + "</span></td>" +
+      (req ? "<td><button class='btn btn-outline btn-sm' onclick=\"customsViewDocument('" + req.id + "','REOPEN')\">เปิดอีกครั้ง</button></td>" : "<td>-</td>") +
+    "</tr>";
+  }).join("");
+  return '' +
+  '<div class="card-head"><div><h2 style="margin:0;">ตรวจสอบเอกสาร DO (Customs)</h2><div class="card-desc">' + esc(session.user.name) + " · " + esc(session.user.position) + "</div></div></div>" +
+  '<div class="grid grid-2">' +
+    '<div class="card search-card"><div class="card-title">ค้นหาด้วยเลข AWB</div><div class="card-desc">พิมพ์เลข MAWB หรือ HAWB ที่ปรากฏบนสินค้า/เอกสาร</div>' +
+      '<div class="search-row"><input id="customsAwbInput" type="text" placeholder="เช่น 217-12345678" onkeydown="if(event.key===\'Enter\')customsSearchByAwb()"><button class="btn btn-primary" onclick="customsSearchByAwb()">ค้นหา</button></div>' +
+    "</div>" +
+    '<div class="card search-card"><div class="card-title">กรอกรหัสจาก QR (จำลองการสแกน)</div><div class="card-desc">ให้ผู้ขนส่ง (Shipping) แสดง QR แล้วกรอกรหัส 8 หลักด้านล่าง QR ที่นี่</div>' +
+      '<div class="search-row"><input id="customsTokenInput" type="text" placeholder="เช่น AOT7F3K29" onkeydown="if(event.key===\'Enter\')customsSearchByToken()"><button class="btn btn-gold" onclick="customsSearchByToken()">ตรวจสอบรหัส</button></div>' +
+    "</div>" +
+  "</div>" +
+  '<div class="card"><div class="card-title">ประวัติการตรวจของฉัน (ล่าสุด)</div>' +
+    (rows ? '<div class="table-wrap"><table class="tbl"><thead><tr><th>เวลา</th><th>MAWB</th><th>DO No.</th><th>วิธีตรวจสอบ</th><th></th></tr></thead><tbody>' + rows + "</tbody></table></div>" : '<div class="empty">ยังไม่มีประวัติการตรวจสอบเอกสาร</div>') +
+  "</div>";
+}
+
+/* ---------------------- render: AOT oversight dashboard ---------------------- */
+function renderAotDashboard(){
+  var everything = db.requests;
+  var totalReviews = db.auditLog.filter(function(l){ return l.action === "CUSTOMS_REVIEWED"; }).length;
+  var totalAssigned = everything.filter(function(r){ return r.status === "DO_ASSIGNED"; }).length;
+  var shippedOut = everything.filter(function(r){ return !!r.shippingId; }).length;
+
+  var html = '<div class="card-head"><div><h2 style="margin:0;">ภาพรวมระบบ (AOT Oversight)</h2><div class="card-desc">' + esc(session.user.name) + " · " + esc(session.user.position) + "</div></div></div>" +
+  '<div class="grid grid-4">' +
+    '<div class="card kpi"><div class="kpi-num">' + everything.length + '</div><div class="kpi-label">คำขอ DO ทั้งหมดในระบบ</div></div>' +
+    '<div class="card kpi"><div class="kpi-num">' + totalAssigned + '</div><div class="kpi-label">Assign DO แล้ว</div></div>' +
+    '<div class="card kpi"><div class="kpi-num">' + shippedOut + '</div><div class="kpi-label">มอบหมายผู้ขนส่งแล้ว</div></div>' +
+    '<div class="card kpi"><div class="kpi-num">' + totalReviews + '</div><div class="kpi-label">ครั้งที่ Customs ตรวจสอบเอกสาร</div></div>' +
+  "</div>";
+
+  html += '<div class="grid grid-2">';
+  html += '<div class="card"><div class="card-title" style="margin-bottom:14px;">ภาพรวม Pipeline ทั้งระบบ</div>' + renderBarChart(bucketCounts(everything)) + "</div>";
+  html += '<div class="card"><div class="card-title" style="margin-bottom:6px;">กิจกรรมล่าสุดทั้งระบบ</div>' + renderRecentActivity(db.auditLog, 8) + "</div>";
+  html += "</div>";
+
+  html += '<div class="card"><div class="card-title">ค้นหา Shipment Timeline</div><div class="card-desc">กรอกเลข MAWB เพื่อดูลำดับเหตุการณ์ทั้งหมดของคำขอ DO ที่เกี่ยวข้อง (ใครทำอะไร เมื่อไหร่ ผลเป็นอย่างไร)</div>' +
+    '<div class="search-row" style="margin-top:10px;"><input id="aotMawbInput" type="text" placeholder="เช่น 217-12345678" value="' + esc(session.aotTimelineQuery.mawb) + '" onkeydown="if(event.key===\'Enter\')searchAotTimeline()"><button class="btn btn-primary" onclick="searchAotTimeline()">ค้นหา Timeline</button></div>' +
+    renderAotTimelineResults(session.aotTimelineQuery.mawb) +
+  "</div>";
+  return html;
+}
+function renderAotTimelineResults(mawb){
+  if(!mawb){ return ""; }
+  var matches = db.requests.filter(function(r){ return r.mawb === mawb; });
+  if(matches.length === 0){ return '<div class="empty" style="margin-top:10px;">ไม่พบคำขอ DO สำหรับ MAWB นี้</div>'; }
+  return matches.map(function(req){
+    var entries = sortLogsAsc(db.auditLog.filter(function(l){ return l.meta && l.meta.requestId === req.id; }));
+    var items = entries.map(function(l){
+      return '<div class="mtl-item"><div class="mtl-time">' + fmt(l.at) + '</div><div><span class="mtl-who">' + esc(l.userName) + "</span> (" + esc(l.role) + ") — " + esc(ACTION_LABELS[l.action] || l.action) + "</div></div>";
+    }).join("");
+    return '<div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">' +
+      '<div class="card-head" style="margin-bottom:6px;"><div><b>' + esc(req.mawb) + (req.hawb ? " / " + esc(req.hawb) : "") + "</b> · Request ID " + esc(req.id) + "</div>" + statusBadge(req.status) + "</div>" +
+      '<div class="mtl">' + (items || '<div class="empty">ไม่มีเหตุการณ์บันทึกไว้</div>') + "</div>" +
+    "</div>";
+  }).join("");
+}
+
+/* ---------------------- render: request detail (timeline) ---------------------- */
+function renderRequestDetail(reqId){
+  var req = db.requests.filter(function(r){ return r.id === reqId; })[0];
+  if(!req){ return '<div class="empty">ไม่พบคำขอที่ระบุ</div>'; }
+  var shipment = req.shipmentId ? getShipment(req.shipmentId) : null;
+  var isTmo = session.user.role === "TMO";
+  var canSeeThis = isTmo || session.user.role === "AOT" || req.requesterId === session.user.id;
+  if(!canSeeThis){ return '<div class="empty">ไม่มีสิทธิ์ดูคำขอนี้</div>'; }
+
+  var html = '<div class="card-head"><div><h2 style="margin:0;">คำขอ DO – ' + esc(req.mawb) + (req.hawb ? " / " + esc(req.hawb) : "") + '</h2><div class="card-desc">Request ID: ' + esc(req.id) + " · ส่งคำขอโดย " + esc(req.requesterName) + " (" + esc(req.requesterCompany || "-") + ")</div></div>" +
+    statusBadge(req.status) + "</div>";
+
+  html += '<div class="card"><div class="tl">';
+
+  // 1. request submitted
+  html += tlItem("ok", "1", "Freight ส่งคำขอ", "MAWB " + esc(req.mawb) + (req.hawb ? " / HAWB " + esc(req.hawb) : " (ไม่มี HAWB)") + " · " + fmt(req.createdAt));
+
+  // 2. shipment match
+  if(shipment){
+    html += tlItem("ok", "2", "ระบบพบ Shipment", esc(shipment.type) + " · Consignee: " + esc(shipment.consignee) +
+      '<div class="grid grid-3" style="margin-top:10px;">' +
+        "<div class='do-kv'><span>Flight/Date</span><span>" + esc(shipment.flight) + " · " + esc(shipment.flightDate) + "</span></div>" +
+        "<div class='do-kv'><span>Route</span><span>" + esc(shipment.origin) + " → " + esc(shipment.destination) + "</span></div>" +
+        "<div class='do-kv'><span>Pieces/Weight</span><span>" + shipment.pieces + " PCS / " + esc(shipment.weight) + "</span></div>" +
+        "<div class='do-kv'><span>Goods</span><span>" + esc(shipment.goods) + "</span></div>" +
+        "<div class='do-kv'><span>Customs</span><span>" + esc(shipment.customsStatus) + "</span></div>" +
+        "<div class='do-kv'><span>Cargo</span><span>" + esc(shipment.cargoStatus) + "</span></div>" +
+      "</div>");
+  } else if(req.status === "SHIPMENT_NOT_FOUND"){
+    html += tlItem("bad", "2", "ระบบไม่พบ Shipment", esc(req.decisionReason));
+  } else {
+    html += tlItem("warn", "2", "พบ Shipment หลายรายการ (Ambiguous)", esc(req.decisionReason));
+  }
+
+  // 3. entitlement
+  if(req.entitlement){
+    html += tlItem(req.entitlement === "FAIL" ? "bad" : "ok", "3", "ตรวจสิทธิ์ (Entitlement)", entitlementBadge(req.entitlement) + (req.entitlement==="FAIL" ? "<div style='margin-top:6px;'>" + esc(req.decisionReason) + "</div>" : ""));
+  } else {
+    html += tlItem("pending", "3", "ตรวจสิทธิ์ (Entitlement)", "ยังไม่ถึงขั้นตอนนี้");
+  }
+
+  // 4. document scan
+  if(req.docChecklist && req.docChecklist.length){
+    html += tlItem(
+      req.documentStatus === "ATTACHED_COMPLETE" ? "ok" : (req.documentStatus === "NOT_ATTACHED" ? "pending" : "warn"),
+      "4", "คลังสินค้า Scan และแนบเอกสาร",
+      docStatusBadge(req.documentStatus) + renderDocChecklist(req, isTmo)
+    );
+  } else {
+    html += tlItem("pending", "4", "คลังสินค้า Scan และแนบเอกสาร", "ยังไม่ถึงขั้นตอนนี้");
+  }
+
+  // 5. decision
+  var terminal = req.status === "DO_ASSIGNED" || req.status === "REJECTED" || req.status === "SHIPMENT_NOT_FOUND" || req.status === "ENTITLEMENT_FAILED";
+  if(req.finalDecision){
+    var dstate = req.finalDecision === "APPROVED" ? "ok" : "bad";
+    html += tlItem(dstate, "5", "ผลการตัดสินใจ", "<b>" + esc(req.finalDecision) + "</b> โดย " + esc(req.decisionBy) + " · " + fmt(req.decisionAt) + "<div style='margin-top:6px;'>" + esc(req.decisionReason) + "</div>");
+  } else if(req.shipmentId && req.entitlement && req.entitlement !== "FAIL"){
+    html += tlItem("pending", "5", "ผลการตัดสินใจ", renderDecisionPanel(req, isTmo));
+  } else {
+    html += tlItem("pending", "5", "ผลการตัดสินใจ", "ยังไม่ถึงขั้นตอนนี้");
+  }
+
+  // 6. DO assign
+  if(req.status === "DO_ASSIGNED"){
+    html += tlItem("ok", "6", "Assign DO", "DO No. <b>" + esc(req.doRequestNo) + "</b> · Assigned to " + esc(req.assignedTo) + " · " + fmt(req.assignedAt) +
+      '<div style="margin-top:10px;"><button class="btn btn-gold btn-sm" onclick="openDoDocument(\'' + req.id + '\')">📄 เปิดเอกสาร DO</button></div>');
+  } else {
+    html += tlItem("pending", "6", "Assign DO", "ยังไม่ถึงขั้นตอนนี้");
+  }
+
+  // 7. shipping assignment + QR handoff (only relevant once DO is assigned)
+  if(req.status === "DO_ASSIGNED"){
+    if(req.shippingId){
+      html += tlItem("ok", "7", "มอบหมายผู้ขนส่ง (Shipping)",
+        "มอบหมายให้ <b>" + esc(req.shippingName) + "</b> โดย " + esc(req.shippingAssignedBy) + " · " + fmt(req.shippingAssignedAt) +
+        "<div style='margin-top:6px;'>QR Token: <b>" + esc(req.qrToken) + "</b> (ให้ Customs สแกน/กรอกรหัสนี้เพื่อตรวจสอบเอกสาร)</div>");
+    } else if(!isTmo && session.user.role === "FORWARDER" && req.requesterId === session.user.id){
+      html += tlItem("pending", "7", "มอบหมายผู้ขนส่ง (Shipping)", renderAssignShippingForm(req));
+    } else {
+      html += tlItem("pending", "7", "มอบหมายผู้ขนส่ง (Shipping)", "รอ Freight Forwarder มอบหมายผู้ขนส่ง (Shipping)");
+    }
+  }
+
+  html += "</div></div>";
+  return html;
+}
+
+function renderAssignShippingForm(req){
+  var shippers = db.users.filter(function(u){ return u.role === "SHIPPING"; });
+  var options = shippers.map(function(u){ return '<option value="' + esc(u.id) + '">' + esc(u.name) + " – " + esc(u.company) + "</option>"; }).join("");
+  return '<div class="field" style="margin-top:8px;max-width:420px;"><label>เลือกผู้ขนส่ง (Shipping)</label><select id="shippingSelect_' + esc(req.id) + '">' + options + "</select></div>" +
+    '<button class="btn btn-primary btn-sm" onclick="assignShipping(\'' + req.id + '\')">มอบหมายงานขนส่ง</button>';
+}
+
+function tlItem(state, num, title, descHtml){
+  return '<div class="tl-item"><div class="tl-dot ' + state + '">' + (state==="ok" ? "✓" : (state==="bad" ? "✕" : num)) + '</div>' +
+    '<div class="tl-body"><div class="tl-title">' + title + '</div><div class="tl-content">' + descHtml + "</div></div></div>";
+}
+
+function renderDocChecklist(req, isTmo){
+  var html = '<div style="margin-top:10px;">';
+  req.docChecklist.forEach(function(d, idx){
+    var stateBadge = { missing:"badge-gray", attached:"badge-success", unreadable:"badge-warning", mismatch:"badge-danger" }[d.state];
+    var stateLabel = { missing:"ยังไม่แนบ", attached:"แนบแล้ว", unreadable:"อ่านไม่ออก", mismatch:"ไม่ตรงกับ Shipment" }[d.state];
+    html += '<div class="doc-row"><div class="doc-info"><div class="doc-name">' + esc(d.type) + (d.required ? ' <span style="color:var(--danger);">*</span>' : ' <span style="color:var(--text-dim);font-weight:400;">(Recommended)</span>') + '</div>' +
+      '<div class="doc-meta">' + (d.scannedBy ? "Scan โดย " + esc(d.scannedBy) + " · " + fmt(d.scannedAt) : "ยังไม่มีการ Scan") + '</div></div>' +
+      '<span class="badge ' + stateBadge + '">' + stateLabel + "</span>";
+    if(isTmo && req.status !== "DO_ASSIGNED" && req.status !== "REJECTED"){
+      html += '<div class="doc-actions">' +
+        "<button class='btn btn-success btn-sm' onclick=\"attachDoc('" + req.id + "'," + idx + ",'attached')\">แนบ (OK)</button>" +
+        "<button class='btn btn-warning btn-sm' onclick=\"attachDoc('" + req.id + "'," + idx + ",'unreadable')\">อ่านไม่ออก</button>" +
+        "<button class='btn btn-danger btn-sm' onclick=\"attachDoc('" + req.id + "'," + idx + ",'mismatch')\">ไม่ตรงกัน</button>" +
+        "<button class='btn btn-outline btn-sm' onclick=\"attachDoc('" + req.id + "'," + idx + ",'missing')\">รีเซ็ต</button>" +
+      "</div>";
+    }
+    html += "</div>";
+  });
+  html += "</div>";
+  return html;
+}
+
+function renderDecisionPanel(req, isTmo){
+  var sug = decideSuggestion(req);
+  var sugMap = {
+    APPROVE_READY:["badge-success","ผ่านเงื่อนครบ – พร้อมอนุมัติ"],
+    PENDING_DOCUMENT:["badge-gray","รอเอกสารจากคลังสินค้า"],
+    PENDING_STATUS:["badge-warning","รอสถานะ Customs/Cargo พร้อม"],
+    MANUAL_REVIEW:["badge-warning","แนะนำให้ตรวจสอบเพิ่มเติม"],
+    REJECT_OR_REVIEW:["badge-danger","เอกสารไม่ตรง – แนะนำปฏิเสธ/ส่งตรวจสอบ"],
+    REJECT:["badge-danger","แนะนำปฏิเสธ"]
+  };
+  var s = sugMap[sug] || ["badge-gray", sug];
+  var html = '<div style="margin-top:8px;">ข้อเสนอเบื้องต้นจากระบบ: <span class="badge ' + s[0] + '">' + s[1] + "</span></div>";
+  if(isTmo && req.status !== "DO_ASSIGNED" && req.status !== "REJECTED"){
+    html += '<div class="field" style="margin-top:12px;"><label>เหตุผล (จำเป็นสำหรับ Manual Review / Reject)</label><textarea id="reasonBox" rows="2" placeholder="ระบุเหตุผล..."></textarea></div>';
+    html += '<div class="chip-row">' +
+      '<button class="btn btn-success" ' + (sug !== "APPROVE_READY" ? "disabled" : "") + ' onclick="makeDecision(\'' + req.id + '\',\'APPROVE\')">✓ Approve &amp; Assign DO</button>' +
+      '<button class="btn btn-warning" onclick="makeDecision(\'' + req.id + '\',\'MANUAL_REVIEW\')">ส่งตรวจสอบเพิ่มเติม</button>' +
+      '<button class="btn btn-danger" onclick="makeDecision(\'' + req.id + '\',\'REJECT\')">✕ Reject</button>' +
+    "</div>";
+  } else if(!isTmo){
+    html += '<div class="field hint" style="margin-top:8px;">รอเจ้าหน้าที่คลังสินค้า (TMO) สแกนเอกสารและอนุมัติ</div>';
+  }
+  return html;
+}
+
+/* ---------------------- render: audit log ---------------------- */
+function renderAuditLog(){
+  var role = session.user.role;
+  var privileged = role === "TMO" || role === "AOT";
+  var myReqIds = db.requests.filter(function(r){ return r.requesterId === session.user.id; }).map(function(r){ return r.id; });
+  var myShippingReqIds = db.requests.filter(function(r){ return r.shippingId === session.user.id; }).map(function(r){ return r.id; });
+  var logs = db.auditLog.filter(function(l){
+    if(privileged){ return true; }
+    if(l.userId === session.user.id){ return true; }
+    if(l.meta && l.meta.requestId && myReqIds.indexOf(l.meta.requestId) !== -1){ return true; }
+    if(l.meta && l.meta.requestId && myShippingReqIds.indexOf(l.meta.requestId) !== -1){ return true; }
+    return false;
+  });
+  var rows = sortLogsDesc(logs).slice(0,200).map(function(l){
+    return "<tr><td>" + fmt(l.at) + "</td><td>" + esc(l.userName) + " <span class='badge badge-gray'>" + esc(l.role) + "</span></td><td><b>" + esc(ACTION_LABELS[l.action] || l.action) + "</b></td><td style='font-size:11.5px;color:var(--text-dim);'>" + esc(JSON.stringify(l.meta)) + "</td></tr>";
+  }).join("");
+  return '<div class="card-head"><div><h2 style="margin:0;">Audit Log</h2><div class="card-desc">' + (privileged ? "ประวัติการดำเนินการทั้งหมดในระบบ" : "ประวัติการดำเนินการที่เกี่ยวข้องกับคุณ") + '</div></div></div>' +
+    '<div class="card">' + (rows ? '<div class="table-wrap"><table class="tbl"><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Detail</th></tr></thead><tbody>' + rows + "</tbody></table></div>" : '<div class="empty">ยังไม่มีข้อมูล</div>') + "</div>";
+}
+
+/* ---------------------- render: DO document (TG-style) ---------------------- */
+function renderDoModal(reqId){
+  var req = db.requests.filter(function(r){ return r.id === reqId; })[0];
+  if(!req || req.status !== "DO_ASSIGNED"){ return ""; }
+  var s = getShipment(req.shipmentId);
+  var approver = db.users.filter(function(u){ return u.name === req.decisionBy; })[0];
+
+  var sheet = '' +
+  '<div class="do-sheet" id="doSheetEl">' +
+    '<div class="do-watermark"></div>' +
+    '<div class="do-header">' +
+      '<div class="do-header-left"><div class="do-aot-badge">AOT</div><div><div class="do-org-name">AOT Cargo Community System</div><div class="do-org-sub">Airports of Thailand Public Company Limited</div></div></div>' +
+      '<div class="do-tg-band"><div class="do-tg-title">THAI AIRWAYS CARGO</div><div class="do-tg-sub">DELIVERY ORDER – Standard Air Cargo Format</div></div>' +
+    "</div>" +
+    '<div class="do-title-row"><h1>DELIVERY ORDER</h1><div class="do-no">No. ' + esc(req.doRequestNo) + "</div></div>" +
+    '<div class="do-grid">' +
+      '<div class="do-box"><h4>Shipment Information</h4>' +
+        "<div class='do-kv'><span>MAWB No.</span><span>" + esc(req.mawb) + "</span></div>" +
+        "<div class='do-kv'><span>HAWB No.</span><span>" + esc(req.hawb || "-") + "</span></div>" +
+        "<div class='do-kv'><span>Flight / Date</span><span>" + esc(s.flight) + " / " + esc(s.flightDate) + "</span></div>" +
+        "<div class='do-kv'><span>Origin → Destination</span><span>" + esc(s.origin) + " → " + esc(s.destination) + "</span></div>" +
+        "<div class='do-kv'><span>Shipment Type</span><span>" + esc(s.type) + "</span></div>" +
+        "<div class='do-kv'><span>Storage Location</span><span>" + esc(s.storage) + "</span></div>" +
+      "</div>" +
+      '<div class="do-box"><h4>Consignee / Notify Party</h4>' +
+        "<div class='do-kv'><span>Consignee</span><span>" + esc(s.consignee) + "</span></div>" +
+        "<div class='do-kv'><span>Consignee Tax ID</span><span>" + esc(s.consigneeTaxId) + "</span></div>" +
+        "<div class='do-kv'><span>Notify Party (Forwarder)</span><span>" + esc(req.requesterCompany) + "</span></div>" +
+        "<div class='do-kv'><span>Forwarder Tax ID</span><span>" + esc(req.requesterTaxId) + "</span></div>" +
+        "<div class='do-kv'><span>Entitlement</span><span>" + esc(req.entitlement) + "</span></div>" +
+      "</div>" +
+    "</div>" +
+    '<table class="do-table"><thead><tr><th>Pieces</th><th>Gross Weight</th><th>Description of Goods</th><th>Storage Location</th></tr></thead><tbody>' +
+      "<tr><td>" + s.pieces + " PCS</td><td>" + esc(s.weight) + "</td><td>" + esc(s.goods) + "</td><td>" + esc(s.storage) + "</td></tr>" +
+    "</tbody></table>" +
+    '<div class="do-status-row">' +
+      '<span class="badge badge-info">Customs: ' + esc(s.customsStatus) + '</span>' +
+      '<span class="badge badge-info">Cargo: ' + esc(s.cargoStatus) + '</span>' +
+      '<span class="badge badge-success">Document: ' + esc(req.documentStatus) + '</span>' +
+      '<span class="badge badge-success">DO Status: ASSIGNED</span>' +
+    "</div>" +
+    '<div class="do-remarks"><b>Delivery Instructions / Remarks:</b> กรุณานำเอกสารฉบับนี้แสดงต่อเจ้าหน้าที่คลังสินค้า AOT เพื่อรับสินค้าออกจากคลังสินค้า ฮาร์ดเวิร์/เอกสารต้นฉบับต้องตรงกันกับข้อมูลในระบบจึงจะสามารถเบิกสินค้าได้</div>' +
+    '<div class="do-sign-row">' +
+      '<div class="do-sign-box">Issued &amp; Approved by:<div class="do-sign-line">' + esc(req.decisionBy) + (approver ? " (" + esc(approver.staffId) + ")" : "") + " — " + fmt(req.decisionAt) + "</div></div>" +
+      '<div class="do-sign-box">Received by (ผู้รับสินค้า / พนักงานขนส่ง):<div class="do-sign-line">ชื่อ _____________________ วันที่ _____________</div></div>' +
+    "</div>" +
+    '<div class="do-approved-stamp"><div class="a1">APPROVED</div><div class="a2">DO ASSIGNED</div><div class="a3">' + esc(req.decisionBy) + '<br>' + fmt(req.decisionAt) + "</div></div>" +
+    '<div class="do-footer"><div class="do-barcode">|‖|‖||‖‖|‖|||‖||‖|</div><div>Ref: ' + esc(req.doRequestNo) + " · Generated " + fmt(nowIso()) + '<br><b>เอกสารนี้จัดทำขึ้นเพื่อสาธิตการออกแบบระบบ (UI/UX Prototype) เท่านั้น ไม่ใช่เอกสารทางการของสายการบินหรือหน่วยงานใด และไม่มีผลผูกพันทางกฎหมาย</b></div></div>' +
+  "</div>";
+
+  return '' +
+  '<div class="modal-overlay no-print" onclick="if(event.target===this)closeDoDocument()">' +
+    '<div class="modal-box do-modal-outer">' +
+      '<div class="do-toolbar no-print"><div><b>เอกสาร Delivery Order</b> <span class="badge badge-success">DO_ASSIGNED</span></div>' +
+        '<div class="chip-row"><button class="btn btn-outline btn-sm" onclick="printDoDocument()">🖶 พิมพ์ / Save PDF</button><button class="btn btn-outline btn-sm" onclick="closeDoDocument()">ปิด</button></div></div>' +
+      '<div class="do-sheet-scroll">' + sheet + "</div>" +
+    "</div>" +
+  "</div>";
+}
+
+/* ---------------------- render: QR handoff modal ---------------------- */
+function renderQrModal(reqId){
+  var req = db.requests.filter(function(r){ return r.id === reqId; })[0];
+  if(!req || !req.qrToken){ return ""; }
+  var shipment = getShipment(req.shipmentId);
+  return '' +
+  '<div class="modal-overlay no-print" onclick="if(event.target===this)closeQrModal()">' +
+    '<div class="modal-box" style="max-width:400px;">' +
+      '<div class="do-toolbar"><div><b>QR Code สำหรับ Customs</b></div><button class="btn btn-outline btn-sm" onclick="closeQrModal()">ปิด</button></div>' +
+      '<div style="padding:22px;">' +
+        renderQrGrid(req.qrToken) +
+        '<div class="qr-token">' + esc(req.qrToken) + "</div>" +
+        '<div style="text-align:center;margin-top:10px;">' +
+          '<div style="font-weight:700;">' + esc(req.mawb) + (req.hawb ? " / " + esc(req.hawb) : "") + "</div>" +
+          '<div style="color:var(--text-dim);font-size:12px;">DO No. ' + esc(req.doRequestNo) + (shipment ? " · " + esc(shipment.consignee) : "") + "</div>" +
+        "</div>" +
+        '<div class="qr-note">QR Code จำลองสำหรับสาธิตระบบ — ในสภาพแวดล้อมนี้เจ้าหน้าที่ Customs ใช้กล้องมือถือส่องหน้าจอนี้ไม่ได้จริง กรุณาให้ Customs กรอกรหัสด้านบน หรือค้นหาด้วยเลข AWB แทน</div>' +
+      "</div>" +
+    "</div>" +
+  "</div>";
+}
+
+/* ---------------------- init ---------------------- */
+render();
+</script>
+</body>
+</html>
