@@ -8,7 +8,7 @@ import { Label } from "./ui/label.jsx";
 import { Badge } from "./ui/badge.jsx";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select.jsx";
 import { StatusBadge, EntitlementBadge, DocStatusBadge, EmptyState } from "./shared.jsx";
-import { getShipment, decideSuggestion, fmt } from "../lib/domain.js";
+import { getShipment, computeDocStatus, decideSuggestion, fmt } from "../lib/domain.js";
 import { cn } from "../lib/utils.js";
 
 function TimelineDot({ state }) {
@@ -47,14 +47,14 @@ function KV({ label, value }) {
   );
 }
 
-function DocChecklist({ req, isTmo }) {
-  const { attachDoc } = useApp();
+function DocChecklist({ shipment, req, isTmo }) {
+  const { attachShipmentDoc } = useApp();
   const editable = isTmo && !["DO_ASSIGNED", "REJECTED"].includes(req.status);
   const stateLabel = { missing: "ยังไม่แนบ", attached: "แนบแล้ว", unreadable: "อ่านไม่ออก", mismatch: "ไม่ตรงกับ Shipment" };
   const stateVariant = { missing: "muted", attached: "success", unreadable: "warning", mismatch: "destructive" };
   return (
     <div className="mt-2 space-y-2">
-      {req.docChecklist.map((d, idx) => (
+      {shipment.docChecklist.map((d, idx) => (
         <div key={idx} className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/40 px-3 py-2">
           <div>
             <div className="text-[13px] font-semibold">
@@ -66,16 +66,16 @@ function DocChecklist({ req, isTmo }) {
             <Badge variant={stateVariant[d.state]}>{stateLabel[d.state]}</Badge>
             {editable && (
               <div className="flex flex-wrap gap-1.5">
-                <Button size="sm" variant="success" onClick={() => attachDoc(req.id, idx, "attached")}>
+                <Button size="sm" variant="success" onClick={() => attachShipmentDoc(shipment.id, idx, "attached")}>
                   แนบ (OK)
                 </Button>
-                <Button size="sm" variant="warning" onClick={() => attachDoc(req.id, idx, "unreadable")}>
+                <Button size="sm" variant="warning" onClick={() => attachShipmentDoc(shipment.id, idx, "unreadable")}>
                   อ่านไม่ออก
                 </Button>
-                <Button size="sm" variant="destructive" onClick={() => attachDoc(req.id, idx, "mismatch")}>
+                <Button size="sm" variant="destructive" onClick={() => attachShipmentDoc(shipment.id, idx, "mismatch")}>
                   ไม่ตรงกัน
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => attachDoc(req.id, idx, "missing")}>
+                <Button size="sm" variant="outline" onClick={() => attachShipmentDoc(shipment.id, idx, "missing")}>
                   รีเซ็ต
                 </Button>
               </div>
@@ -176,6 +176,7 @@ export default function RequestDetail() {
   if (!canSee) return <EmptyState>ไม่มีสิทธิ์ดูคำขอนี้</EmptyState>;
 
   const shipment = req.shipmentId ? getShipment(db, req.shipmentId) : null;
+  const documentStatus = shipment ? computeDocStatus(shipment) : null;
   const isOwnerForwarder = user.role === "FORWARDER" && req.requesterId === user.id;
 
   return (
@@ -234,14 +235,14 @@ export default function RequestDetail() {
             </TimelineItem>
           )}
 
-          {req.docChecklist?.length ? (
+          {shipment && req.entitlement && req.entitlement !== "FAIL" ? (
             <TimelineItem
-              state={req.documentStatus === "ATTACHED_COMPLETE" ? "ok" : req.documentStatus === "NOT_ATTACHED" ? "pending" : "warn"}
+              state={documentStatus === "ATTACHED_COMPLETE" ? "ok" : documentStatus === "NOT_ATTACHED" ? "pending" : "warn"}
               num="4"
               title="คลังสินค้า Scan และแนบเอกสาร"
             >
-              <DocStatusBadge value={req.documentStatus} />
-              <DocChecklist req={req} isTmo={isTmo} />
+              <DocStatusBadge value={documentStatus} />
+              <DocChecklist shipment={shipment} req={req} isTmo={isTmo} />
             </TimelineItem>
           ) : (
             <TimelineItem state="pending" num="4" title="คลังสินค้า Scan และแนบเอกสาร">

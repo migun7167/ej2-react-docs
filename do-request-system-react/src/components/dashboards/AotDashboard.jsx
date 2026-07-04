@@ -77,7 +77,9 @@ export default function AotDashboard() {
           {mawbQuery && matches.length === 0 && <EmptyState>ไม่พบคำขอ DO สำหรับ MAWB นี้</EmptyState>}
 
           {matches.map((req) => {
-            const entries = sortLogsAsc(db.auditLog.filter((l) => l.meta?.requestId === req.id));
+            const entries = sortLogsAsc(
+              db.auditLog.filter((l) => l.meta?.requestId === req.id || (req.shipmentId && l.meta?.shipmentId === req.shipmentId))
+            );
             return (
               <div key={req.id} className="border-t pt-4 first:border-none first:pt-0">
                 <div className="mb-2 flex items-center justify-between">

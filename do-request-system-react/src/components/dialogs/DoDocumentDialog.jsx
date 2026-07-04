@@ -4,7 +4,7 @@ import { useApp } from "../../context/AppContext.jsx";
 import { Dialog, DialogContent } from "../ui/dialog.jsx";
 import { Button } from "../ui/button.jsx";
 import { Badge } from "../ui/badge.jsx";
-import { getShipment, fmt } from "../../lib/domain.js";
+import { getShipment, computeDocStatus, fmt } from "../../lib/domain.js";
 import { nowIso } from "../../lib/db.js";
 
 const WATERMARK_LINE = "SAMPLE / MOCKUP  •  AOT DO SYSTEM  •  NOT A REAL DOCUMENT";
@@ -129,7 +129,7 @@ export default function DoDocumentDialog() {
             <div className="relative z-10 mb-3.5 flex flex-wrap gap-2">
               <Badge variant="default">Customs: {s.customsStatus}</Badge>
               <Badge variant="default">Cargo: {s.cargoStatus}</Badge>
-              <Badge variant="success">Document: {req.documentStatus}</Badge>
+              <Badge variant="success">Document: {computeDocStatus(s)}</Badge>
               <Badge variant="success">DO Status: ASSIGNED</Badge>
             </div>
 

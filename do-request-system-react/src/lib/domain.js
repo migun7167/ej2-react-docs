@@ -37,10 +37,13 @@ export function buildDocChecklist(shipment) {
   return list;
 }
 
-export function computeDocStatus(req) {
-  const required = req.docChecklist.filter((d) => d.required);
+// Works on any entity with a .docChecklist array — a shipment (documents can
+// be pre-attached by TMO before any DO request exists) or, historically, a
+// request. Documents now live on the shipment; see getDocumentStatus below.
+export function computeDocStatus(entity) {
+  const required = entity.docChecklist.filter((d) => d.required);
   if (required.length === 0) {
-    return req.docChecklist.some((d) => d.state === "attached") ? "ATTACHED_COMPLETE" : "NOT_ATTACHED";
+    return entity.docChecklist.some((d) => d.state === "attached") ? "ATTACHED_COMPLETE" : "NOT_ATTACHED";
   }
   if (required.some((d) => d.state === "mismatch")) return "MISMATCH";
   if (required.some((d) => d.state === "unreadable")) return "UNREADABLE";
@@ -49,11 +52,24 @@ export function computeDocStatus(req) {
   return "NOT_ATTACHED";
 }
 
+// Document status is derived live from the shipment's checklist, never
+// cached on the request, so TMO pre-attaching documents ahead of a request
+// (or continuing to scan after one exists) is always reflected immediately.
+export function getDocumentStatus(db, req) {
+  if (!req.shipmentId) return null;
+  const shipment = getShipment(db, req.shipmentId);
+  return shipment ? computeDocStatus(shipment) : null;
+}
+
+export function unattachedShipmentsCount(db) {
+  return db.shipments.filter((s) => computeDocStatus(s) !== "ATTACHED_COMPLETE").length;
+}
+
 export function decideSuggestion(db, req) {
   if (!req.shipmentId) return "REJECT";
   const shipment = getShipment(db, req.shipmentId);
   if (req.entitlement === "FAIL") return "REJECT";
-  const ds = req.documentStatus;
+  const ds = computeDocStatus(shipment);
   if (ds === "MISMATCH") return "REJECT_OR_REVIEW";
   if (ds === "UNREADABLE" || ds === "PARTIAL_ATTACHED") return "MANUAL_REVIEW";
   if (ds === "NOT_ATTACHED") return "PENDING_DOCUMENT";

@@ -15,6 +15,7 @@ const SAMPLES = [
   { mawb: "217-77778888", hawb: "", title: "217-77778888", note: "ไม่ระบุ HAWB – Ambiguous / Manual Review" },
   { mawb: "217-77778888", hawb: "THB-100200", title: "217-77778888 / THB-100200", note: "House – PASS_HOUSE (ลองด้วย Kerry)" },
   { mawb: "217-00000000", hawb: "", title: "217-00000000", note: "ไม่มีในระบบ – Not Found / Reject" },
+  { mawb: "217-30099001", hawb: "", title: "217-30099001", note: "TMO แนบเอกสารไว้ล่วงหน้าแล้ว – ข้าม Pending Document Scan ไปที่การอนุมัติทันที (ลองด้วย Kerry)" },
 ];
 
 export default function NewRequest() {

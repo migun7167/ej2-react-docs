@@ -1,5 +1,5 @@
 import React from "react";
-import { LayoutDashboard, FilePlus2, History, ListChecks, RotateCcw, Truck, ShieldCheck, Eye } from "lucide-react";
+import { LayoutDashboard, FilePlus2, History, ListChecks, RotateCcw, Truck, ShieldCheck, Eye, FileStack } from "lucide-react";
 import { useApp } from "../../context/AppContext.jsx";
 import { cn } from "../../lib/utils.js";
 
@@ -41,6 +41,7 @@ export default function Sidebar() {
       <>
         <GroupLabel>TMO – AOT Cargo Terminal</GroupLabel>
         <NavItem icon={ListChecks} label="คิวคำขอ DO" active={view === "tmo-dashboard"} onClick={() => goto("tmo-dashboard")} />
+        <NavItem icon={FileStack} label="เอกสารคลังสินค้า" active={view === "warehouse-documents"} onClick={() => goto("warehouse-documents")} />
         <NavItem icon={History} label="ประวัติการดำเนินการ" active={view === "audit-log"} onClick={() => goto("audit-log")} />
         <GroupLabel>System</GroupLabel>
         <NavItem icon={RotateCcw} label="รีเซ็ตข้อมูลตัวอย่าง" onClick={resetDemo} />

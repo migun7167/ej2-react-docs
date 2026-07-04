@@ -60,8 +60,26 @@ npm run preview    # preview the production build
 | 217-12345678 | – | ABC/DHL | FAIL (no entitlement) → auto-rejected |
 | 217-00000000 | – | any | Not found → auto-rejected |
 
-All data lives in `localStorage` (key `aot_do_demo_react_v1`) — use "รีเซ็ต
+All data lives in `localStorage` (key `aot_do_demo_react_v2`) — use "รีเซ็ต
 ข้อมูลตัวอย่าง" in the TMO sidebar to reset it back to the seeded state.
+
+## Pre-attaching documents (TMO — before a DO request exists)
+
+Documents belong to the **shipment**, not the DO request, so TMO can scan and
+attach them as soon as cargo physically arrives at the warehouse — independent
+of whether, or when, a Forwarder later requests a DO for it:
+
+- TMO's **"เอกสารคลังสินค้า" (Warehouse Documents)** page lists every shipment
+  in the system with its document status, a **"จัดการเอกสาร"** action to
+  attach/scan documents right there, and a KPI up top for exactly how many
+  shipments are still missing complete documents.
+- If a Forwarder later requests a DO for a shipment whose documents are
+  already fully attached, the request **skips straight past "รอ Scan เอกสาร"**
+  to "รออนุมัติ" — try MAWB `217-30099001` (Kerry) on "+ ขอ DO ใหม่" to see
+  this: TMO pre-attached its documents 2 hours ago, before any request for it
+  existed.
+- Documents can still also be attached from the request's own timeline (step
+  4) once a request exists — both paths write to the same shipment record.
 
 ## Project layout
 

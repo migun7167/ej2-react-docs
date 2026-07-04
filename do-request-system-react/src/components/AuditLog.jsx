@@ -9,14 +9,17 @@ import { ACTION_LABELS, fmt, sortLogsDesc } from "../lib/domain.js";
 export default function AuditLog() {
   const { db, user } = useApp();
   const privileged = user.role === "TMO" || user.role === "AOT";
-  const myReqIds = db.requests.filter((r) => r.requesterId === user.id).map((r) => r.id);
-  const myShippingReqIds = db.requests.filter((r) => r.shippingId === user.id).map((r) => r.id);
+  const myRequests = db.requests.filter((r) => r.requesterId === user.id || r.shippingId === user.id);
+  const myReqIds = myRequests.map((r) => r.id);
+  // Include shipment-level events (e.g. TMO pre-attaching documents before
+  // any request existed) once the user has a request tied to that shipment.
+  const myShipmentIds = myRequests.filter((r) => r.shipmentId).map((r) => r.shipmentId);
 
   const logs = db.auditLog.filter((l) => {
     if (privileged) return true;
     if (l.userId === user.id) return true;
     if (l.meta?.requestId && myReqIds.includes(l.meta.requestId)) return true;
-    if (l.meta?.requestId && myShippingReqIds.includes(l.meta.requestId)) return true;
+    if (l.meta?.shipmentId && myShipmentIds.includes(l.meta.shipmentId)) return true;
     return false;
   });
   const rows = sortLogsDesc(logs).slice(0, 200);

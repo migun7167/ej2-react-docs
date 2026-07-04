@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table.jsx";
 import StatusBarChart from "../charts/StatusBarChart.jsx";
 import { EntitlementBadge, StatusBadge, DocStatusBadge, AgingBadge, KpiCard, RecentActivity, EmptyState } from "../shared.jsx";
-import { getShipment, bucketCounts, avgTurnaroundHours, fmtHours, agingInfo, isToday } from "../../lib/domain.js";
+import { getShipment, getDocumentStatus, bucketCounts, avgTurnaroundHours, fmtHours, agingInfo, isToday } from "../../lib/domain.js";
 
 export default function TmoDashboard() {
   const { db, user, openRequest } = useApp();
@@ -55,6 +55,7 @@ export default function TmoDashboard() {
           {list.map((r) => {
             const shipment = r.shipmentId ? getShipment(db, r.shipmentId) : null;
             const aging = agingInfo(r);
+            const docStatus = getDocumentStatus(db, r);
             return (
               <TableRow key={r.id}>
                 <TableCell>
@@ -66,7 +67,7 @@ export default function TmoDashboard() {
                 <TableCell>
                   <EntitlementBadge value={r.entitlement} />
                 </TableCell>
-                <TableCell>{r.documentStatus ? <DocStatusBadge value={r.documentStatus} /> : "-"}</TableCell>
+                <TableCell>{docStatus ? <DocStatusBadge value={docStatus} /> : "-"}</TableCell>
                 <TableCell>
                   <StatusBadge value={r.status} />
                 </TableCell>

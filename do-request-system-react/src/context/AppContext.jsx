@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { loadDB, saveDB, seedDB, uid, nowIso } from "../lib/db.js";
-import { evaluateSearch, buildDocChecklist, computeDocStatus, decideSuggestion, nextDoNumber, genQrToken } from "../lib/domain.js";
+import { evaluateSearch, computeDocStatus, decideSuggestion, nextDoNumber, genQrToken } from "../lib/domain.js";
 
 const AppContext = createContext(null);
 
@@ -138,13 +138,19 @@ export function AppProvider({ children }) {
       };
       let req;
       if (res.kind === "not_found") {
-        req = { ...base, shipmentId: null, entitlement: null, status: "SHIPMENT_NOT_FOUND", documentStatus: null, docChecklist: [], finalDecision: "REJECTED", decisionReason: "ไม่พบ Shipment ที่ตรงกับ MAWB/HAWB ที่ระบุในระบบ", decisionBy: "SYSTEM", decisionAt: now };
+        req = { ...base, shipmentId: null, entitlement: null, status: "SHIPMENT_NOT_FOUND", finalDecision: "REJECTED", decisionReason: "ไม่พบ Shipment ที่ตรงกับ MAWB/HAWB ที่ระบุในระบบ", decisionBy: "SYSTEM", decisionAt: now };
       } else if (res.kind === "ambiguous") {
-        req = { ...base, shipmentId: null, entitlement: null, status: "MANUAL_REVIEW", documentStatus: null, docChecklist: [], finalDecision: null, decisionReason: "พบ Shipment มากกว่า 1 รายการภายใต้ MAWB นี้ กรุณาระบุ HAWB ให้ชัดเจน หรือรอเจ้าหน้าที่ตรวจสอบ" };
+        req = { ...base, shipmentId: null, entitlement: null, status: "MANUAL_REVIEW", finalDecision: null, decisionReason: "พบ Shipment มากกว่า 1 รายการภายใต้ MAWB นี้ กรุณาระบุ HAWB ให้ชัดเจน หรือรอเจ้าหน้าที่ตรวจสอบ" };
       } else if (res.kind === "ok" && res.entitlement === "FAIL") {
-        req = { ...base, shipmentId: res.shipment.id, entitlement: "FAIL", status: "ENTITLEMENT_FAILED", documentStatus: null, docChecklist: [], finalDecision: "REJECTED", decisionReason: "บัญชีผู้ใช้งานไม่ใช่ Consignee ตาม MAWB/HAWB และไม่มี Delegation ที่ถูกต้อง", decisionBy: "SYSTEM", decisionAt: now };
+        req = { ...base, shipmentId: res.shipment.id, entitlement: "FAIL", status: "ENTITLEMENT_FAILED", finalDecision: "REJECTED", decisionReason: "บัญชีผู้ใช้งานไม่ใช่ Consignee ตาม MAWB/HAWB และไม่มี Delegation ที่ถูกต้อง", decisionBy: "SYSTEM", decisionAt: now };
       } else {
-        req = { ...base, shipmentId: res.shipment.id, entitlement: res.entitlement, status: "PENDING_DOCUMENT_SCAN", documentStatus: "NOT_ATTACHED", docChecklist: buildDocChecklist(res.shipment), finalDecision: null, decisionReason: null };
+        // Documents may already be on the shipment if TMO pre-attached them
+        // before this request existed — skip straight past the scan step.
+        const docStatus = computeDocStatus(res.shipment);
+        let status = "PENDING_DOCUMENT_SCAN";
+        if (docStatus === "ATTACHED_COMPLETE") status = "READY_FOR_APPROVAL";
+        else if (["UNREADABLE", "MISMATCH"].includes(docStatus)) status = "MANUAL_REVIEW";
+        req = { ...base, shipmentId: res.shipment.id, entitlement: res.entitlement, status, finalDecision: null, decisionReason: null };
       }
       mutate((draft) => {
         draft.requests.unshift(req);
@@ -158,13 +164,16 @@ export function AppProvider({ children }) {
     [db, user, mutate, logAudit, showToast, openRequest]
   );
 
-  const attachDoc = useCallback(
-    (reqId, idx, newState) => {
+  // TMO scans/attaches a document on a SHIPMENT — independent of whether a DO
+  // request exists yet for it. Any non-terminal, non-manually-flagged
+  // requests already referencing this shipment have their stage recomputed.
+  const attachShipmentDoc = useCallback(
+    (shipmentId, idx, newState) => {
       if (!user || user.role !== "TMO") return;
       mutate((draft) => {
-        const req = draft.requests.find((r) => r.id === reqId);
-        if (!req) return;
-        const doc = req.docChecklist[idx];
+        const shipment = draft.shipments.find((s) => s.id === shipmentId);
+        if (!shipment) return;
+        const doc = shipment.docChecklist[idx];
         doc.state = newState;
         if (newState === "missing") {
           doc.scannedBy = null;
@@ -173,14 +182,17 @@ export function AppProvider({ children }) {
           doc.scannedBy = user.name;
           doc.scannedAt = nowIso();
         }
-        req.documentStatus = computeDocStatus(req);
-        req.updatedAt = nowIso();
-        if (!["MANUAL_REVIEW", "REJECTED", "DO_ASSIGNED"].includes(req.status)) {
-          if (req.documentStatus === "ATTACHED_COMPLETE") req.status = "READY_FOR_APPROVAL";
-          else if (["UNREADABLE", "MISMATCH"].includes(req.documentStatus)) req.status = "MANUAL_REVIEW";
+        const newDocStatus = computeDocStatus(shipment);
+        const now = nowIso();
+        draft.requests.forEach((req) => {
+          if (req.shipmentId !== shipmentId) return;
+          if (["MANUAL_REVIEW", "REJECTED", "DO_ASSIGNED", "SHIPMENT_NOT_FOUND", "ENTITLEMENT_FAILED"].includes(req.status)) return;
+          req.updatedAt = now;
+          if (newDocStatus === "ATTACHED_COMPLETE") req.status = "READY_FOR_APPROVAL";
+          else if (["UNREADABLE", "MISMATCH"].includes(newDocStatus)) req.status = "MANUAL_REVIEW";
           else req.status = "PENDING_DOCUMENT_SCAN";
-        }
-        logAudit(draft, user, "DOCUMENT_SCANNED", { requestId: req.id, doc: doc.type, state: newState });
+        });
+        logAudit(draft, user, "DOCUMENT_SCANNED", { shipmentId, doc: doc.type, state: newState });
       });
     },
     [user, mutate, logAudit]
@@ -331,7 +343,7 @@ export function AppProvider({ children }) {
       openRequest,
       previewSearch,
       submitRequest,
-      attachDoc,
+      attachShipmentDoc,
       makeDecision,
       assignShipping,
       shippingViewDocument,
@@ -359,7 +371,7 @@ export function AppProvider({ children }) {
       openRequest,
       previewSearch,
       submitRequest,
-      attachDoc,
+      attachShipmentDoc,
       makeDecision,
       assignShipping,
       shippingViewDocument,

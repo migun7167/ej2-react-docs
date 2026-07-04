@@ -6,6 +6,7 @@ import Sidebar from "./components/layout/Sidebar.jsx";
 import ForwarderDashboard from "./components/dashboards/ForwarderDashboard.jsx";
 import NewRequest from "./components/dashboards/NewRequest.jsx";
 import TmoDashboard from "./components/dashboards/TmoDashboard.jsx";
+import WarehouseDocuments from "./components/dashboards/WarehouseDocuments.jsx";
 import ShippingDashboard from "./components/dashboards/ShippingDashboard.jsx";
 import CustomsDashboard from "./components/dashboards/CustomsDashboard.jsx";
 import AotDashboard from "./components/dashboards/AotDashboard.jsx";
@@ -19,6 +20,7 @@ const VIEWS = {
   "fwd-dashboard": ForwarderDashboard,
   "new-request": NewRequest,
   "tmo-dashboard": TmoDashboard,
+  "warehouse-documents": WarehouseDocuments,
   "shipping-dashboard": ShippingDashboard,
   "customs-dashboard": CustomsDashboard,
   "aot-dashboard": AotDashboard,
