@@ -3,3 +3,4 @@ dist/
 .env
 ops/tiles/data/
 *.log
+*.tsbuildinfo
