@@ -1,0 +1,20 @@
+{$SITE_ADDRESS:localhost} {
+	encode gzip
+
+	handle /api/* {
+		reverse_proxy api:3000
+	}
+
+	handle /auth/* {
+		reverse_proxy keycloak:8080
+	}
+
+	handle /tiles/* {
+		uri strip_prefix /tiles
+		reverse_proxy tileserver:8080
+	}
+
+	handle {
+		reverse_proxy web:80
+	}
+}
